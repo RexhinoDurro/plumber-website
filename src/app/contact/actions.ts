@@ -30,3 +30,21 @@ export async function sendQuoteRequest(_prev: QuoteState, form: FormData): Promi
 
   return { ok: true, errors: {} };
 }
+
+export type QuickState = { ok: boolean; errors: Partial<Record<"name" | "phone", string>>; values?: Record<string, string> };
+
+/** Short hero form: name + phone + job type. */
+export async function sendQuickQuote(_prev: QuickState, form: FormData): Promise<QuickState> {
+  const values = {
+    name: String(form.get("name") ?? "").trim(),
+    phone: String(form.get("phone") ?? "").trim(),
+    job: String(form.get("job") ?? ""),
+  };
+  const errors: QuickState["errors"] = {};
+  if (values.name.length < 2) errors.name = "Add your name.";
+  if (values.phone.replace(/\D/g, "").length < 7) errors.phone = "Add a phone number.";
+  if (Object.keys(errors).length) return { ok: false, errors, values };
+  // TODO: deliver the request (email/CRM). Logged on the server for now.
+  console.log("[quick-quote]", values);
+  return { ok: true, errors: {} };
+}

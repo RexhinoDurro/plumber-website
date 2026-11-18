@@ -3,6 +3,7 @@ import { site } from "@/content/site";
 import { Photo } from "@/components/Photo";
 import { PageHead } from "@/components/PageHead";
 import { CtaBand } from "@/components/CtaBand";
+import { WorkMarquee } from "@/components/WorkMarquee";
 
 export const metadata: Metadata = {
   title: "About",
@@ -10,10 +11,10 @@ export const metadata: Metadata = {
 };
 
 const values = [
-  ["One price, agreed first", "You know the cost before we start. If we find something unexpected, we stop and ask."],
-  ["We answer the phone", "A real person, and an honest arrival time rather than an all-day window."],
-  ["Clean as we go", "Dust sheets, shoe covers, old parts taken away. Your home is not a building site."],
-  ["Done once, done right", "We fix the cause, not just the symptom, and test every joint before we leave."],
+  ["One price, agreed first", "You know the cost before we start. If we find something unexpected, we stop and ask.", "pressure-gauge"],
+  ["We answer the phone", "A real person, and an honest arrival time rather than an all-day window.", "gloves-tools"],
+  ["Clean as we go", "Dust sheets, shoe covers, old parts taken away. Your home is not a building site.", "bathroom"],
+  ["Done once, done right", "We fix the cause, not just the symptom, and test every joint before we leave.", "spanner"],
 ];
 
 export default function AboutPage() {
@@ -60,15 +61,19 @@ export default function AboutPage() {
           <p className="label">How we work</p>
           <h2 id="values-title" className="mb-12 mt-4 max-w-[16ch]">Four promises we keep on every job.</h2>
           <div className="grid gap-x-12 gap-y-10 md:grid-cols-2">
-            {values.map(([t, d]) => (
-              <div key={t} className="border-t-4 border-brand pt-4">
-                <h3 className="mb-2">{t}</h3>
-                <p className="text-muted">{d}</p>
+            {values.map(([t, d, img], i) => (
+              <div key={t} className="grid gap-4">
+                <Photo id={img} elbow={i % 2 ? "tl" : "tr"} className="aspect-[16/9]" sizes="(max-width: 860px) 100vw, 45vw" />
+                <div className="border-t-4 border-brand pt-4">
+                  <h3 className="mb-2">{t}</h3>
+                  <p className="text-muted">{d}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
+      <WorkMarquee />
       <CtaBand />
     </>
   );

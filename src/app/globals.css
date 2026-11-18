@@ -175,3 +175,12 @@
     .drift { animation: drift linear both; animation-timeline: view(); }
   }
 }
+
+/* ===== Work marquee (pauses on hover/focus; static when reduced motion) ===== */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee-track { animation: marquee 60s linear infinite; }
+.marquee:hover .marquee-track, .marquee:focus-within .marquee-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .marquee { overflow-x: auto; }
+  .marquee-track { animation: none; }
+}

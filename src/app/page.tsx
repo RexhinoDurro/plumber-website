@@ -5,7 +5,8 @@ import { hero, byId, videos } from "@/content/media";
 import { VideoBand } from "@/components/VideoBand";
 import { Photo } from "@/components/Photo";
 import { CtaBand } from "@/components/CtaBand";
-import { CheckIcon, PhoneIcon } from "@/components/Icons";
+import { PhoneIcon } from "@/components/Icons";
+import { QuickQuote } from "@/components/QuickQuote";
 
 const steps = [
   {
@@ -62,32 +63,45 @@ export default function Home() {
               "linear-gradient(to top, rgb(10 26 51 / .96) 0%, rgb(10 26 51 / .6) 45%, rgb(10 26 51 / .4) 100%), linear-gradient(to right, rgb(10 26 51 / .75), transparent 70%)",
           }}
         />
-        <div className="wrap grid gap-8 pb-14 pt-28 md:pb-16">
-          <p className="label">Plumbing &amp; heating · {site.city}</p>
-          <h1 id="hero-title" className="max-w-[13ch]">
-            Plumbing fixed properly. <span className="text-sky">Priced before we start.</span>
-          </h1>
-          <p className="lede !text-on-dark-muted">
-            For homeowners and landlords in {site.city}: leaks, blocked drains, bathrooms, kitchens and boilers. One call, an
-            honest arrival time, and a fixed price before any work begins.
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <a href={site.phoneHref} className="btn">
-              <PhoneIcon /> Call {site.phone}
-            </a>
-            <Link href="/contact" className="btn btn-secondary">
-              Get a fixed-price quote
-            </Link>
+        <div className="wrap grid items-end gap-12 pb-14 pt-24 md:pb-16 lg:grid-cols-[1.25fr_0.75fr] lg:gap-16">
+          <div className="grid gap-8">
+            <p className="label">Plumbing &amp; heating · {site.city}</p>
+            <h1 id="hero-title" className="max-w-[14ch] text-[clamp(2.6rem,4.4vw+0.6rem,5rem)]">
+              Plumbing fixed properly. <span className="text-sky">Priced before we start.</span>
+            </h1>
+            <p className="lede !text-on-dark-muted">
+              For homeowners and landlords in {site.city}: leaks, blocked drains, bathrooms, kitchens and boilers. One call,
+              an honest arrival time, and a fixed price before any work begins.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <a href={site.phoneHref} className="btn">
+                <PhoneIcon /> Call {site.phone}
+              </a>
+              <Link href="/services" className="btn btn-secondary">
+                See our services
+              </Link>
+            </div>
           </div>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 border-t border-on-dark/20 pt-6 text-[0.95rem] text-on-dark-muted">
-            {["Fixed price up front", site.licence, site.insurance, "Emergencies 24/7"].map((t) => (
-              <li key={t} className="inline-flex items-center gap-2">
-                <CheckIcon className="size-4 text-sky" />
-                {t}
-              </li>
-            ))}
-          </ul>
+          <QuickQuote />
         </div>
+      </section>
+
+
+      {/* ===== Proof strip ===== */}
+      <section aria-label="Why people choose us" className="border-b border-line bg-surface">
+        <ul className="wrap grid grid-cols-2 gap-x-6 gap-y-5 py-7 lg:grid-cols-4">
+          {[
+            ["Google reviews", "[Rating] from [N] reviews (add yours)", ""],
+            ["Fixed price", "Agreed before any work starts", ""],
+            ["Licensed & insured", site.licence, ""],
+            [`Since ${site.founded}`, `Local to ${site.city}`, ""],
+          ].map(([big, small]) => (
+            <li key={big} className="grid gap-0.5 border-l-4 border-brand pl-4">
+              <span className="font-display text-xl font-extrabold text-ink [font-stretch:112%]">{big}</span>
+              <span className="text-[0.95rem] text-muted">{small}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ===== Services bento ===== */}
@@ -95,7 +109,7 @@ export default function Home() {
         <div className="wrap">
           <div className="mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
             <div className="grid gap-4">
-              <p className="label">What we do</p>
+              <p className="label">What&apos;s the problem?</p>
               <h2 id="services-title" className="max-w-[16ch]">From a dripping tap to a new bathroom.</h2>
             </div>
             <Link href="/services" className="font-semibold text-water">
@@ -115,6 +129,42 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* ===== Reviews ===== */}
+      <section className="section pt-0" aria-labelledby="reviews-title">
+        <div className="wrap">
+          <div className="mb-12 grid gap-4">
+            <p className="label">What customers say</p>
+            <h2 id="reviews-title" className="max-w-[16ch]">Ask our neighbours.</h2>
+            {testimonials.some((t) => t.placeholder) && (
+              <p className="placeholder-note max-w-[60ch]">
+                Placeholder reviews: replace them with real customer reviews in <code>src/content/site.ts</code>. Never publish
+                invented ones.
+              </p>
+            )}
+          </div>
+          <div className="grid gap-6 md:grid-cols-[1.3fr_1fr_1fr]">
+            {testimonials.map((t, i) => (
+              <figure
+                key={i}
+                className={`m-0 grid content-between gap-6 rounded-md p-8 shadow-hair ${
+                  i === 0 ? "on-dark bg-water text-on-dark" : "bg-surface"
+                }`}
+              >
+                <blockquote
+                  className={i === 0 ? "font-display text-2xl font-bold leading-snug [font-stretch:112%]" : "text-[1.0625rem]"}
+                >
+                  {t.quote}
+                </blockquote>
+                <figcaption className={`text-[0.9375rem] ${i === 0 ? "text-on-dark" : "text-muted"}`}>
+                  <b className={`block ${i === 0 ? "" : "text-ink"}`}>{t.name}</b>
+                  {t.job} · {t.place}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ===== Promise: full-bleed video band ===== */}
       <VideoBand video={videos.shower} labelledBy="promise-title">
@@ -256,42 +306,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== Reviews ===== */}
-      <section className="section" aria-labelledby="reviews-title">
-        <div className="wrap">
-          <div className="mb-12 grid gap-4">
-            <p className="label">What customers say</p>
-            <h2 id="reviews-title" className="max-w-[16ch]">Ask our neighbours.</h2>
-            {testimonials.some((t) => t.placeholder) && (
-              <p className="placeholder-note max-w-[60ch]">
-                Placeholder reviews: replace them with real customer reviews in <code>src/content/site.ts</code>. Never publish
-                invented ones.
-              </p>
-            )}
-          </div>
-          <div className="grid gap-6 md:grid-cols-[1.3fr_1fr_1fr]">
-            {testimonials.map((t, i) => (
-              <figure
-                key={i}
-                className={`m-0 grid content-between gap-6 rounded-md p-8 shadow-hair ${
-                  i === 0 ? "on-dark bg-water text-on-dark" : "bg-surface"
-                }`}
-              >
-                <blockquote
-                  className={i === 0 ? "font-display text-2xl font-bold leading-snug [font-stretch:112%]" : "text-[1.0625rem]"}
-                >
-                  {t.quote}
-                </blockquote>
-                <figcaption className={`text-[0.9375rem] ${i === 0 ? "text-on-dark" : "text-muted"}`}>
-                  <b className={`block ${i === 0 ? "" : "text-ink"}`}>{t.name}</b>
-                  {t.job} · {t.place}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ===== Areas + FAQ ===== */}
       <section className="section pt-0" aria-labelledby="faq-title">
         <div className="wrap grid gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
@@ -308,6 +322,7 @@ export default function Home() {
             <p className="text-muted">
               Not sure if we cover you? <Link href="/contact" className="font-semibold text-water">Ask us</Link>.
             </p>
+            <Photo id="apartment-fix" elbow="bl" className="mt-4 aspect-[4/3]" sizes="(max-width: 860px) 100vw, 35vw" />
           </div>
           <div>
             <h2 id="faq-title" className="mb-6 text-[clamp(1.75rem,2vw+1rem,2.5rem)]">Questions people ask first</h2>
@@ -338,20 +353,18 @@ function ServiceCard({
   const layout = {
     big: "col-span-12 lg:col-span-7 lg:row-span-2 grid-rows-[1fr_auto]",
     mid: "col-span-12 lg:col-span-5 grid-rows-[auto_1fr]",
-    small: "col-span-12 sm:col-span-6 lg:col-span-4 border-t-4 border-brand",
+    small: "col-span-12 sm:col-span-6 lg:col-span-4 grid-rows-[auto_1fr]",
   }[size];
   return (
     <Link
       href={`/services#${service.slug}`}
       className={`group grid overflow-hidden rounded-md bg-surface text-ink no-underline shadow-hair transition-transform duration-200 ease-out-soft hover:-translate-y-0.5 ${layout}`}
     >
-      {size !== "small" && (
-        <Photo
-          id={service.photo}
-          className={`rounded-none ${size === "big" ? "min-h-[280px] lg:min-h-[400px]" : "aspect-[16/8]"}`}
-          sizes="(max-width: 1024px) 100vw, 55vw"
-        />
-      )}
+      <Photo
+        id={service.photo}
+        className={`rounded-none ${size === "big" ? "min-h-[280px] lg:min-h-[400px]" : size === "mid" ? "aspect-[16/8]" : "aspect-[16/9]"}`}
+        sizes="(max-width: 1024px) 100vw, 55vw"
+      />
       <div className="grid content-start gap-2 p-6">
         <h3 className={`group-hover:text-water ${size === "big" ? "text-3xl" : ""}`}>{service.title}</h3>
         <p className="text-base text-muted">{service.short}</p>

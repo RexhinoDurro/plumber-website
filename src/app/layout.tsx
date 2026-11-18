@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
+import { TopBar } from "@/components/TopBar";
 import { Footer } from "@/components/Footer";
 import { site } from "@/content/site";
 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <TopBar />
         <Header />
         <main id="main">{children}</main>
         <Footer />

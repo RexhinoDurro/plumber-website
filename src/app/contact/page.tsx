@@ -3,6 +3,7 @@ import { site } from "@/content/site";
 import { PageHead } from "@/components/PageHead";
 import { QuoteForm } from "@/components/QuoteForm";
 import { PhoneIcon } from "@/components/Icons";
+import { Photo } from "@/components/Photo";
 
 export const metadata: Metadata = {
   title: "Contact & quotes",
@@ -54,6 +55,8 @@ export default function ContactPage() {
             </p>
             <p className="text-muted">{site.address}</p>
           </div>
+
+          <Photo id="brass-shower" elbow="br" className="aspect-[16/10]" sizes="(max-width: 1024px) 100vw, 35vw" />
 
           <div className="grid gap-3 border-t-4 border-brand pt-4">
             <h2 className="text-2xl">Areas we cover</h2>
