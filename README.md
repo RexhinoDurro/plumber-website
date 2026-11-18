@@ -16,7 +16,7 @@ Everything business-specific is in **`src/content/`**:
 
 | File | What to change |
 |---|---|
-| `site.ts` | Business name, phone, email, address, hours, areas, licence, insurance, founding year. Reviews (`testimonials`): **add real reviews only**. FAQ answers marked TODO. |
+| `site.ts` | Business name, time zone, opening hours (for the live status), guarantees, accreditations, phone, email, address, hours, areas, licence, insurance, founding year. Reviews (`testimonials`): **add real reviews only**. FAQ answers marked TODO. |
 | `services.ts` | Services, descriptions, included jobs and **typical price ranges** (placeholders). Add your heating certifications. |
 | `media.ts` | Photos, gallery videos and the "Watch a job" clip. They are free Pexels placeholders; swap in photos of your own jobs (put them in `/public` and use `/your-photo.jpg` paths). |
 
@@ -30,6 +30,7 @@ See **`DESIGN.md`** for the design system: colors and their roles, type, spacing
 
 - UX: sticky call/quote bar on phones, "Get a quote" in the header, a 3-field quote form in the hero, separate homeowner and landlord paths, a price guide, review source links (set `reviewsUrl` in `site.ts`).
 - Video: background loops (hero and bands), clips that play only while visible on the Services page, a click-to-play "Watch a job" player, and video items in the gallery (with a Videos filter).
+- Motion: hero line reveal, scroll-driven reveals (headings, photo uncover, staggered cards, filling pipe nodes), page crossfades, a shrinking header and a live "Open now" status from `openingHours` + `timezone` in `site.ts`. All of it respects reduced motion.
 - Fonts are self-hosted (`@fontsource-variable/archivo`, `@fontsource-variable/public-sans`).
 - Motion: the hero and two background bands use slow muted video loops; the "How a job works" pipe line draws on scroll (CSS scroll-driven animation). All of it turns off with `prefers-reduced-motion`.
 - Accessibility: skip link, visible focus rings, a keyboard-operable gallery lightbox (arrows / Esc), labelled form fields with inline errors, and text contrast of at least 4.5:1.

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ViewTransition } from "react";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <TopBar />
         <Header />
-        <main id="main">{children}</main>
+        <ViewTransition>
+          <main id="main">{children}</main>
+        </ViewTransition>
         <Footer />
         <MobileCallBar />
       </body>

@@ -60,10 +60,10 @@ export default function AboutPage() {
         <div className="wrap">
           <p className="label">How we work</p>
           <h2 id="values-title" className="mb-12 mt-4 max-w-[16ch]">Four promises we keep on every job.</h2>
-          <div className="grid gap-x-12 gap-y-10 md:grid-cols-2">
+          <div className="rv-stagger grid gap-x-12 gap-y-10 md:grid-cols-2">
             {values.map(([t, d, img], i) => (
               <div key={t} className="grid gap-4">
-                <Photo id={img} elbow={i % 2 ? "tl" : "tr"} className="aspect-[16/9]" sizes="(max-width: 860px) 100vw, 45vw" />
+                <Photo id={img} elbow={i % 2 ? "tl" : "tr"} className="rv-img aspect-[16/9]" sizes="(max-width: 860px) 100vw, 45vw" />
                 <div className="border-t-4 border-brand pt-4">
                   <h3 className="mb-2">{t}</h3>
                   <p className="text-muted">{d}</p>

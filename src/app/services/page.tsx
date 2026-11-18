@@ -30,7 +30,7 @@ export default function ServicesPage() {
             aria-labelledby={`${s.slug}-title`}
             className="grid scroll-mt-28 items-center gap-6 md:grid-cols-2 md:gap-16"
           >
-            <div className={`grid gap-5 ${i % 2 ? "md:order-2" : ""}`}>
+            <div className={`rv grid gap-5 ${i % 2 ? "md:order-2" : ""}`}>
               <h2 id={`${s.slug}-title`} className="text-[clamp(1.9rem,2.4vw+1rem,3rem)]">{s.title}</h2>
               <p className="lede">{s.body}</p>
               <ul className="brand-list">
@@ -44,11 +44,11 @@ export default function ServicesPage() {
               </p>
             </div>
             {s.video ? (
-              <div className={`photo aspect-[5/4] ${i % 2 ? "rounded-tl-elbow" : "rounded-tr-elbow"}`}>
+              <div className={`rv-img photo aspect-[5/4] ${i % 2 ? "rounded-tl-elbow" : "rounded-tr-elbow"}`}>
                 <LoopVideo src={byId(s.video).video!} poster={byId(s.video).src} />
               </div>
             ) : (
-              <Photo id={s.photo} elbow={i % 2 ? "tl" : "tr"} className="aspect-[5/4]" />
+              <Photo id={s.photo} elbow={i % 2 ? "tl" : "tr"} className="rv-img aspect-[5/4]" />
             )}
           </section>
         ))}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site, testimonials, faqs, audiences } from "@/content/site";
+import { site, testimonials, faqs, audiences, guarantees, accreditations } from "@/content/site";
 import { services } from "@/content/services";
 import { hero, byId, videos } from "@/content/media";
 import { VideoBand } from "@/components/VideoBand";
@@ -46,7 +46,7 @@ export default function Home() {
         aria-labelledby="hero-title"
       >
         <video
-          className="hero-media absolute inset-0 -z-20 size-full object-cover opacity-45"
+          className="hero-media hero-settle absolute inset-0 -z-20 size-full object-cover opacity-45"
           autoPlay
           muted
           loop
@@ -67,14 +67,15 @@ export default function Home() {
         <div className="wrap grid items-end gap-12 pb-14 pt-24 md:pb-16 lg:grid-cols-[1.25fr_0.75fr] lg:gap-16">
           <div className="grid gap-8">
             <p className="label">Plumbing &amp; heating · {site.city}</p>
-            <h1 id="hero-title" className="max-w-[14ch] text-[clamp(2.6rem,4.4vw+0.6rem,5rem)]">
-              Plumbing fixed properly. <span className="text-sky">Priced before we start.</span>
+            <h1 id="hero-title" className="max-w-[15ch] text-[clamp(2.6rem,4.4vw+0.6rem,5rem)]">
+              <span className="line-mask hero-line"><span>Plumbing fixed properly.</span></span>
+              <span className="line-mask hero-line"><span className="text-sky">Priced before we start.</span></span>
             </h1>
-            <p className="lede !text-on-dark-muted">
+            <p className="lede hero-fade d1 !text-on-dark-muted">
               For homeowners and landlords in {site.city}: leaks, blocked drains, bathrooms, kitchens and boilers. One call,
               an honest arrival time, and a fixed price before any work begins.
             </p>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="hero-fade d2 flex flex-wrap items-center gap-3">
               <a href={site.phoneHref} className="btn">
                 <PhoneIcon /> Call {site.phone}
               </a>
@@ -83,7 +84,9 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <QuickQuote />
+          <div className="hero-fade d3">
+            <QuickQuote />
+          </div>
         </div>
       </section>
 
@@ -108,7 +111,7 @@ export default function Home() {
       {/* ===== Services bento ===== */}
       <section className="section" aria-labelledby="services-title">
         <div className="wrap">
-          <div className="mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
+          <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
             <div className="grid gap-4">
               <p className="label">What&apos;s the problem?</p>
               <h2 id="services-title" className="max-w-[16ch]">From a dripping tap to a new bathroom.</h2>
@@ -118,7 +121,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-12 gap-6">
+          <div className="rv-stagger grid grid-cols-12 gap-6">
             <ServiceCard service={big} size="big" />
             {mids.map((s) => (
               <ServiceCard key={s.slug} service={s} size="mid" />
@@ -135,9 +138,9 @@ export default function Home() {
       <section className="section pt-0" aria-labelledby="who-title">
         <div className="wrap">
           <h2 id="who-title" className="sr-only">Who we work for</h2>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="rv-stagger grid gap-6 md:grid-cols-2">
             {audiences.map((a, i) => (
-              <article key={a.id} className="grid overflow-hidden rounded-md bg-surface shadow-hair">
+              <article key={a.id} className="lift grid overflow-hidden rounded-md bg-surface shadow-hair">
                 <Photo id={a.photo} elbow={i ? "tl" : "tr"} className="aspect-[16/8] rounded-none" sizes="(max-width: 860px) 100vw, 50vw" />
                 <div className="grid gap-4 p-7 md:p-8">
                   <h3 className="text-[1.75rem]">{a.title}</h3>
@@ -160,7 +163,7 @@ export default function Home() {
       {/* ===== Reviews ===== */}
       <section className="section pt-0" aria-labelledby="reviews-title">
         <div className="wrap">
-          <div className="mb-12 grid gap-4">
+          <div className="rv mb-12 grid gap-4">
             <p className="label">What customers say</p>
             <h2 id="reviews-title" className="max-w-[16ch]">Ask our neighbours.</h2>
             {testimonials.some((t) => t.placeholder) && (
@@ -170,7 +173,7 @@ export default function Home() {
               </p>
             )}
           </div>
-          <div className="grid gap-6 md:grid-cols-[1.3fr_1fr_1fr]">
+          <div className="rv-stagger grid gap-6 md:grid-cols-[1.3fr_1fr_1fr]">
             {testimonials.map((t, i) => (
               <figure
                 key={i}
@@ -221,7 +224,7 @@ export default function Home() {
       {/* ===== How it works: the blue pipe line ===== */}
       <section className="section blueprint" aria-labelledby="how-title">
         <div className="wrap">
-          <div className="mb-16 grid gap-4">
+          <div className="rv mb-16 grid gap-4">
             <p className="label">How a job works</p>
             <h2 id="how-title" className="max-w-[18ch]">No surprises on the bill, no mess left behind.</h2>
           </div>
@@ -247,7 +250,7 @@ export default function Home() {
             {steps.map((s, i) => (
               <li
                 key={s.title}
-                className="relative grid items-center gap-6 md:grid-cols-2 md:gap-12
+                className="pipe-node relative grid items-center gap-6 md:grid-cols-2 md:gap-12
                   before:absolute before:-left-9 before:top-1 before:size-6 before:rounded-full before:border-4 before:border-brand before:bg-bg before:content-['']
                   md:before:-left-[60px]"
               >
@@ -258,10 +261,50 @@ export default function Home() {
                   <h3 className="mb-3 mt-2 text-[clamp(1.5rem,1.4vw+1rem,2.125rem)]">{s.title}</h3>
                   <p className="max-w-[46ch] text-muted">{s.text}</p>
                 </div>
-                <Photo id={s.photo} elbow={i % 2 ? "tl" : "tr"} className="aspect-[16/10]" />
+                <Photo id={s.photo} elbow={i % 2 ? "tl" : "tr"} className="rv-img aspect-[16/10]" />
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      {/* ===== Guarantees + accreditations ===== */}
+      <section className="section on-dark grain bg-ink text-on-dark" aria-labelledby="guarantee-title">
+        <div className="wrap grid gap-14">
+          <div className="rv grid gap-4 md:grid-cols-[1fr_1fr] md:items-end md:gap-16">
+            <div className="grid gap-4">
+              <p className="label">Our guarantee</p>
+              <h2 id="guarantee-title" className="max-w-[13ch]">Guaranteed, in writing.</h2>
+            </div>
+            <p className="lede !text-on-dark-muted">
+              Every job comes with a written guarantee on the invoice. If something we fixed fails, we come back.
+            </p>
+          </div>
+          <ul className="rv-stagger grid gap-8 md:grid-cols-3">
+            {guarantees.map((g) => (
+              <li key={g.title} className="grid content-start gap-3 border-t-2 border-sky/60 pt-5">
+                <svg viewBox="0 0 24 24" className="size-7 text-sky" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" />
+                  <path d="m8.8 12.2 2.2 2.2 4.4-4.6" />
+                </svg>
+                <h3 className="text-xl">{g.title}</h3>
+                <p className="text-on-dark-muted">{g.text}</p>
+              </li>
+            ))}
+          </ul>
+          <div className="grid gap-4 border-t border-on-dark/15 pt-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.06em] text-on-dark-muted">Members and registrations</p>
+            <ul className="flex flex-wrap gap-3">
+              {accreditations.map((a) => (
+                <li key={a} className="rounded-sm border border-dashed border-on-dark/30 px-5 py-3 text-[0.95rem] text-on-dark-muted">
+                  {a}
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm text-on-dark-muted">
+              Placeholders: add your real memberships and the guarantee length in <code>src/content/site.ts</code>.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -305,7 +348,7 @@ export default function Home() {
       {/* ===== Recent work ===== */}
       <section className="section bg-surface" aria-labelledby="work-title">
         <div className="wrap">
-          <div className="mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
+          <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
             <div className="grid gap-4">
               <p className="label">Recent work</p>
               <h2 id="work-title" className="max-w-[14ch]">Jobs we&apos;re proud of.</h2>
@@ -322,11 +365,11 @@ export default function Home() {
               ["steel-pipes", "col-span-12 md:col-span-4", "none"],
               ["brass-shower", "col-span-12 md:col-span-8", "br"],
             ].map(([id, cls, elbow]) => (
-              <figure key={id} className={`relative m-0 ${cls}`}>
+              <figure key={id} className={`lift relative m-0 ${cls}`}>
                 <Photo
                   id={id}
                   elbow={elbow as "tl" | "br" | "none"}
-                  className="h-full"
+                  className="rv-img h-full"
                   sizes="(max-width: 760px) 100vw, 60vw"
                 />
                 <figcaption className="absolute bottom-3 left-3 rounded-full bg-surface px-3 py-1 text-[0.8125rem] font-semibold">
@@ -354,7 +397,7 @@ export default function Home() {
             <p className="text-muted">
               Not sure if we cover you? <Link href="/contact" className="font-semibold text-water">Ask us</Link>.
             </p>
-            <Photo id="apartment-fix" elbow="bl" className="mt-4 aspect-[4/3]" sizes="(max-width: 860px) 100vw, 35vw" />
+            <Photo id="apartment-fix" elbow="bl" className="rv-img mt-4 aspect-[4/3]" sizes="(max-width: 860px) 100vw, 35vw" />
           </div>
           <div>
             <h2 id="faq-title" className="mb-6 text-[clamp(1.75rem,2vw+1rem,2.5rem)]">Questions people ask first</h2>
@@ -390,7 +433,7 @@ function ServiceCard({
   return (
     <Link
       href={`/services#${service.slug}`}
-      className={`group grid overflow-hidden rounded-md bg-surface text-ink no-underline shadow-hair transition-transform duration-200 ease-out-soft hover:-translate-y-0.5 ${layout}`}
+      className={`lift group grid overflow-hidden rounded-md bg-surface text-ink no-underline shadow-hair transition-transform duration-200 ease-out-soft hover:-translate-y-0.5 ${layout}`}
     >
       <Photo
         id={service.photo}

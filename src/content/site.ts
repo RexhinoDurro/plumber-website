@@ -11,6 +11,16 @@ export const site = {
   phoneHref: "tel:+00000000000", // TODO: same number, digits only
   email: "hello@example.com", // TODO
   address: "Workshop address, Your City", // TODO
+  timezone: "Europe/Budapest", // TODO: the business's time zone
+  // Opening hours used for the live "Open now" status. Day 0 = Sunday. TODO: match your real hours.
+  openingHours: [
+    { day: 1, open: "07:30", close: "18:00" },
+    { day: 2, open: "07:30", close: "18:00" },
+    { day: 3, open: "07:30", close: "18:00" },
+    { day: 4, open: "07:30", close: "18:00" },
+    { day: 5, open: "07:30", close: "18:00" },
+    { day: 6, open: "08:00", close: "14:00" },
+  ],
   hours: [
     { days: "Mon – Fri", time: "07:30 – 18:00" }, // TODO
     { days: "Saturday", time: "08:00 – 14:00" }, // TODO
@@ -101,3 +111,12 @@ export const audiences = [
     cta: "Set up a landlord account",
   },
 ] as const;
+
+/** Guarantees shown on the home page. TODO: confirm each one; only promise what you honour. */
+export const guarantees = [
+  { title: "[12]-month workmanship guarantee", text: "If our work fails within the guarantee period, we come back and fix it free of charge." },
+  { title: "The price we agree is the price you pay", text: "No hidden extras. If the job changes, we stop and agree the new price with you first." },
+  { title: "Clean-up promise", text: "Dust sheets down, old parts removed, the room left as we found it. Or we come back." },
+];
+/** TODO: add your trade association memberships / certifications (names only until you have their logo files). */
+export const accreditations = ["[Trade association]", "[Gas / heating register]", "[Water regulations scheme]", "[Insurance provider]"];

@@ -184,3 +184,70 @@
   .marquee { overflow-x: auto; }
   .marquee-track { animation: none; }
 }
+
+/* =====================================================================
+   MOTION SYSTEM — calm, purposeful, always off with reduced motion.
+   Load: hero lines rise out of a mask, then copy and form follow.
+   Scroll: section heads rise, photos uncover, card groups stagger,
+   pipe-line nodes fill as each step arrives. All scroll effects are
+   CSS scroll-driven (no JS), wrapped in @supports so older browsers
+   simply show the finished state.
+   ===================================================================== */
+:root { --ease-expo: cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes line-up { from { transform: translateY(105%); } to { transform: none; } }
+@keyframes soft-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes settle { from { transform: scale(1.08); } to { transform: scale(1); } }
+
+.line-mask { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.line-mask > span { display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-line > span { animation: line-up 900ms var(--ease-expo) both; }
+  .hero-line:nth-of-type(2) > span { animation-delay: 110ms; }
+  .hero-fade { animation: soft-in 700ms var(--ease-expo) both; }
+  .hero-fade.d1 { animation-delay: 300ms; }
+  .hero-fade.d2 { animation-delay: 420ms; }
+  .hero-fade.d3 { animation-delay: 540ms; }
+  .hero-settle { animation: settle 2400ms var(--ease-expo) both; }
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes uncover { from { clip-path: inset(18% 0 0 0); transform: scale(1.04); } to { clip-path: inset(0 0 0 0); transform: none; } }
+@keyframes node-fill { from { background-color: var(--color-bg); transform: scale(.85); } to { background-color: var(--color-brand); transform: scale(1); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .rv { animation: rise linear both; animation-timeline: view(); animation-range: entry 5% entry 55%; }
+    .rv-img { animation: uncover linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+    .rv-stagger > * { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
+    .rv-stagger > :nth-child(2) { animation-range: entry 8% entry 58%; }
+    .rv-stagger > :nth-child(3) { animation-range: entry 16% entry 66%; }
+    .rv-stagger > :nth-child(4) { animation-range: entry 24% entry 74%; }
+    .rv-stagger > :nth-child(5) { animation-range: entry 30% entry 80%; }
+    .rv-stagger > :nth-child(6) { animation-range: entry 36% entry 86%; }
+    .pipe-node { view-timeline: --node block; }
+    .pipe-node::before { animation: node-fill linear both; animation-timeline: --node; animation-range: entry 55% cover 45%; }
+  }
+}
+
+/* Hover: photos lean in slightly inside their frames. */
+.lift .photo img, .lift video { transition: transform 600ms var(--ease-expo); }
+.lift:hover .photo img, .lift:hover video { transform: scale(1.035); }
+
+/* Nav: underline grows from the left. */
+@media (min-width: 48rem) {
+  .nav-link { position: relative; }
+  .nav-link::after {
+    content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; background: var(--color-brand);
+    transform: scaleX(0); transform-origin: left; transition: transform 240ms var(--ease-out-soft);
+  }
+  .nav-link:hover::after, .nav-link[aria-current="page"]::after { transform: scaleX(1); }
+}
+
+/* Page-to-page crossfade (React <ViewTransition>). */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 240ms; animation-timing-function: var(--ease-out-soft); }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .lift:hover .photo img, .lift:hover video { transform: none; }
+}

@@ -50,17 +50,18 @@ Rules: one bright element per screen (the blue CTA; white button on the blue ban
 
 ## Motion
 
-- Press: scale(.97), 120 ms ease-out (`cubic-bezier(0.23,1,0.32,1)`). Hover color: 200 ms.
-- Hero: a muted Pexels video loop at ~45% opacity with a navy gradient overlay; a poster image for reduced motion.
-- Only one orchestrated moment: the pipe line. No fade-ups on every section.
-- Lightbox open: 200 ms opacity + scale from 0.97.
+Calm and purposeful: motion explains change, confirms an action or guides attention. Nothing bounces, nothing loops fast, and everything is off with `prefers-reduced-motion`.
 
-## Backgrounds
+| Moment | What moves | Timing |
+|---|---|---|
+| Page load (hero) | Headline lines rise out of a mask, then the intro, buttons and quote card fade up; the background video settles from 1.08 to 1 | 900 ms, expo-out, staggered 110 ms / 300–540 ms |
+| Scroll | Section headings rise 28 px; photos uncover from the bottom (clip-path); card groups stagger; pipe-line nodes fill blue as each step arrives; the pipe line draws | CSS scroll-driven (`animation-timeline: view()`), no JavaScript |
+| Hover / press | Photos lean in 3.5% inside their frames; nav underline grows from the left; buttons press to 0.97 | 120–600 ms ease-out |
+| Header | Shrinks from 76 to 64 px and gains a soft shadow once you scroll | 300 ms |
+| Page change | Crossfade between pages (React `<ViewTransition>`) | 240 ms |
+| Live status | Top bar shows "Open now · until 18:00" or when the office opens, from `openingHours` in the business's time zone; a soft pulse only while open | updates every minute |
 
-- Hero, "Our promise" and "Leak right now?" are full-bleed **video bands** (slow muted Pexels loops, navy overlay, poster first).
-- Inner pages open with a **photo header** (job photo under a navy gradient, elbow corner bottom-right, slow scroll drift).
-- "How a job works" sits on a faint **blueprint grid**, like a site drawing.
-- Dark and blue bands get a light **film grain** so flat color feels physical.
+Browsers without scroll-driven animation simply show the finished state.
 
 ## Components
 

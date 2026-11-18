@@ -35,10 +35,14 @@ export function Header() {
   return (
     <header
       className={`sticky top-0 z-50 bg-bg/92 backdrop-blur-md border-b transition-colors ${
-        scrolled ? "border-line" : "border-transparent"
+        scrolled ? "border-line shadow-[0_8px_24px_-16px_rgb(10_26_51/0.35)]" : "border-transparent"
       }`}
     >
-      <div className="wrap flex min-h-16 md:min-h-[76px] items-center gap-3 md:gap-6">
+      <div
+        className={`wrap flex min-h-16 items-center gap-3 transition-[min-height] duration-300 ease-out-soft md:gap-6 ${
+          scrolled ? "md:min-h-16" : "md:min-h-[76px]"
+        }`}
+      >
         <Link href="/" aria-label={`${site.name}, home`} className="flex items-center gap-3 no-underline text-ink">
           <ElbowMark className="size-[34px] shrink-0" />
           <span className="font-display text-xl font-extrabold tracking-[-0.02em] [font-stretch:125%]">
@@ -62,8 +66,8 @@ export function Header() {
                     aria-current={current ? "page" : undefined}
                     onClick={() => setOpen(false)}
                     className={`block py-3 font-display text-[1.75rem] font-bold no-underline text-ink [font-stretch:125%]
-                      md:rounded-sm md:px-3 md:py-2 md:font-body md:text-base md:font-medium md:[font-stretch:100%] md:hover:bg-ink/6
-                      ${current ? "text-brand-deep md:text-ink md:rounded-none md:shadow-[inset_0_-2px_0_var(--color-brand)]" : ""}`}
+                      nav-link md:rounded-sm md:px-3 md:py-2 md:font-body md:text-base md:font-medium md:[font-stretch:100%]
+                      ${current ? "text-brand-deep md:text-ink" : ""}`}
                   >
                     {l.label}
                   </Link>
