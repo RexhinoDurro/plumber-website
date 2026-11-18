@@ -251,3 +251,8 @@
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .lift:hover .photo img, .lift:hover video { transform: none; }
 }
+
+/* Problem finder: the answer panel eases in when the choice changes. */
+@media (prefers-reduced-motion: no-preference) {
+  .finder-panel { animation: soft-in 320ms var(--ease-out-soft) both; }
+}

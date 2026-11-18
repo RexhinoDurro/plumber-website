@@ -16,11 +16,12 @@ export function Footer() {
         <FooterCol title="Services">
           {services.map((s) => (
             <li key={s.slug}>
-              <Link href={`/services#${s.slug}`}>{s.title}</Link>
+              <Link href={`/services/${s.slug}`}>{s.title}</Link>
             </li>
           ))}
         </FooterCol>
         <FooterCol title="Company">
+          <li><Link href="/emergency">Emergency help</Link></li>
           <li><Link href="/gallery">Our work</Link></li>
           <li><Link href="/about">About</Link></li>
           <li><Link href="/contact">Get a quote</Link></li>

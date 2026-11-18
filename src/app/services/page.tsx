@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { services, priceFactors } from "@/content/services";
 import { site } from "@/content/site";
@@ -38,6 +39,9 @@ export default function ServicesPage() {
                   <li key={j}>{j}</li>
                 ))}
               </ul>
+              <Link href={`/services/${s.slug}`} className="justify-self-start font-semibold text-water">
+                Full details, process and FAQs
+              </Link>
               <p className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-line pt-4">
                 <span className="font-display text-xl font-extrabold [font-stretch:112%]">{s.price}</span>
                 <span className="text-[0.95rem] text-muted">{s.priceNote}</span>
@@ -84,7 +88,7 @@ export default function ServicesPage() {
               {services.map((s) => (
                 <tr key={s.slug} className="border-b border-line align-top">
                   <th scope="row" className="py-4 pr-4 font-normal">
-                    <a href={`#${s.slug}`} className="font-semibold text-ink no-underline hover:underline">{s.title}</a>
+                    <Link href={`/services/${s.slug}`} className="font-semibold text-ink no-underline hover:underline">{s.title}</Link>
                     <span className="mt-1 block text-[0.95rem] text-muted">{s.priceNote}</span>
                   </th>
                   <td className="py-4 text-right font-display text-lg sm:whitespace-nowrap font-extrabold [font-stretch:112%]">{s.price}</td>

@@ -8,6 +8,9 @@ import { CtaBand } from "@/components/CtaBand";
 import { PhoneIcon } from "@/components/Icons";
 import { QuickQuote } from "@/components/QuickQuote";
 import { VideoShowcase } from "@/components/VideoShowcase";
+import { ProblemFinder } from "@/components/ProblemFinder";
+import { AreaChecker } from "@/components/AreaChecker";
+import { FaqJsonLd } from "@/components/JsonLd";
 
 const steps = [
   {
@@ -107,6 +110,8 @@ export default function Home() {
           ))}
         </ul>
       </section>
+
+      <ProblemFinder />
 
       {/* ===== Services bento ===== */}
       <section className="section" aria-labelledby="services-title">
@@ -394,9 +399,7 @@ export default function Home() {
                 </li>
               ))}
             </ul>
-            <p className="text-muted">
-              Not sure if we cover you? <Link href="/contact" className="font-semibold text-water">Ask us</Link>.
-            </p>
+            <AreaChecker />
             <Photo id="apartment-fix" elbow="bl" className="rv-img mt-4 aspect-[4/3]" sizes="(max-width: 860px) 100vw, 35vw" />
           </div>
           <div>
@@ -413,6 +416,7 @@ export default function Home() {
         </div>
       </section>
 
+      <FaqJsonLd />
       <CtaBand />
     </>
   );
@@ -432,7 +436,7 @@ function ServiceCard({
   }[size];
   return (
     <Link
-      href={`/services#${service.slug}`}
+      href={`/services/${service.slug}`}
       className={`lift group grid overflow-hidden rounded-md bg-surface text-ink no-underline shadow-hair transition-transform duration-200 ease-out-soft hover:-translate-y-0.5 ${layout}`}
     >
       <Photo

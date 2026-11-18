@@ -8,6 +8,7 @@ import { ElbowMark, PhoneIcon } from "./Icons";
 
 const links = [
   { href: "/services", label: "Services" },
+  { href: "/emergency", label: "Emergency" },
   { href: "/gallery", label: "Our work" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -58,7 +59,7 @@ export function Header() {
         >
           <ul className="flex flex-col md:flex-row md:gap-1">
             {links.map((l) => {
-              const current = pathname === l.href;
+              const current = pathname === l.href || (l.href !== "/" && pathname.startsWith(l.href + "/"));
               return (
                 <li key={l.href}>
                   <Link

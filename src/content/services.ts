@@ -8,6 +8,7 @@ export type Service = {
   video?: string; // id from media.ts with a video
   price: string; // TODO: real typical range, e.g. "€90–€180"
   priceNote: string;
+  faqs: { q: string; a: string }[];
 };
 
 export const services: Service[] = [
@@ -20,6 +21,10 @@ export const services: Service[] = [
     photo: "faucet-repair",
     price: "[from €—] call-out",
     priceNote: "Most leaks are fixed in one visit; parts extra.",
+    faqs: [
+      { q: "Do you come out at night and at weekends?", a: "Yes. Our emergency line is answered around the clock. [TODO: confirm your out-of-hours cover and any out-of-hours rate.]" },
+      { q: "What should I do before you arrive?", a: "Turn off the water at the stopcock, switch off electrics near the leak, and catch what you can. A photo helps us bring the right parts." },
+    ],
     video: "faucet-repair",
   },
   {
@@ -31,6 +36,10 @@ export const services: Service[] = [
     photo: "doing-plumbing",
     price: "[€— to €—]",
     priceNote: "Depends on access and whether a camera inspection is needed.",
+    faqs: [
+      { q: "Will you just push the blockage further down?", a: "No. We clear it fully and, where it keeps coming back, inspect the pipe to find the cause." },
+      { q: "Can I use drain cleaner first?", a: "Please don't. Chemical cleaners can damage pipes and make the job unsafe to work on." },
+    ],
   },
   {
     slug: "bathrooms",
@@ -41,6 +50,10 @@ export const services: Service[] = [
     photo: "bathroom",
     price: "[from €—] full refit",
     priceNote: "Fixed price after a free survey. Tiling and fittings quoted separately.",
+    faqs: [
+      { q: "How long does a bathroom refit take?", a: "It depends on size and layout. You get a written plan with dates before we start. [TODO: add a typical timeframe.]" },
+      { q: "Do you handle tiling and electrics too?", a: "We plan the plumbing and coordinate with trusted tilers and electricians, so you have one person to call. [TODO: confirm.]" },
+    ],
     video: "brass-shower",
   },
   {
@@ -52,6 +65,10 @@ export const services: Service[] = [
     photo: "kitchen-tap",
     price: "[from €—] per fitting",
     priceNote: "Most connections take under two hours.",
+    faqs: [
+      { q: "Can you connect my new dishwasher or washing machine?", a: "Yes, including new valves and waste connections where needed. Most connections take under two hours." },
+      { q: "Do you supply the taps and sinks?", a: "We can supply them or fit the ones you've chosen." },
+    ],
     video: "kitchen-tap",
   },
   {
@@ -63,6 +80,10 @@ export const services: Service[] = [
     photo: "radiator-pipe",
     price: "[from €—] annual service",
     priceNote: "Repairs priced after diagnosis; parts quoted before fitting.",
+    faqs: [
+      { q: "How often should a boiler be serviced?", a: "Once a year keeps it safe, efficient and within its warranty." },
+      { q: "Why is one radiator always cold?", a: "Usually trapped air, sludge or an unbalanced system. We diagnose it before quoting." },
+    ],
   },
   {
     slug: "pipework",
@@ -73,6 +94,10 @@ export const services: Service[] = [
     photo: "steel-pipes",
     price: "[quoted per job]",
     priceNote: "Priced after a site visit, by run length and access.",
+    faqs: [
+      { q: "Can you move pipes for a renovation?", a: "Yes. We plan routes with your builder so pipes are accessible and nothing has to be redone later." },
+      { q: "Do you replace old lead or galvanised pipes?", a: "Yes. We'll tell you honestly whether replacing is worth it." },
+    ],
   },
 ];
 
@@ -83,3 +108,5 @@ export const priceFactors = [
   "Out-of-hours call-outs (evenings, weekends)",
   "Whether making good (plaster, tiles) is needed afterwards",
 ];
+
+export const serviceBySlug = (slug: string) => services.find((s) => s.slug === slug);

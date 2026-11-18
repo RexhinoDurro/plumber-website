@@ -1,6 +1,6 @@
 # Plumber website
 
-A Next.js 16 + Tailwind CSS v4 site for a local plumbing and heating business. Pages: Home, Services, Our work (gallery), About and Contact.
+A Next.js 16 + Tailwind CSS v4 site for a local plumbing and heating business. Pages: Home, Services (plus one page per service at `/services/[slug]`), Emergency, Our work (gallery), About, Contact, and a designed 404.
 
 ## Run it
 
@@ -18,11 +18,18 @@ Everything business-specific is in **`src/content/`**:
 |---|---|
 | `site.ts` | Business name, time zone, opening hours (for the live status), guarantees, accreditations, phone, email, address, hours, areas, licence, insurance, founding year. Reviews (`testimonials`): **add real reviews only**. FAQ answers marked TODO. |
 | `services.ts` | Services, descriptions, included jobs and **typical price ranges** (placeholders). Add your heating certifications. |
+| `problems.ts` | The "What's happening?" finder: symptoms, urgency, safe first step, likely causes, linked service. |
 | `media.ts` | Photos, gallery videos and the "Watch a job" clip. They are free Pexels placeholders; swap in photos of your own jobs (put them in `/public` and use `/your-photo.jpg` paths). |
 
 Search the code for `TODO` and `[` to find every placeholder.
 
 The quote form (`src/app/contact/actions.ts`) validates input but only logs requests on the server. Connect an email service (Resend, Postmark) or your CRM where the TODO says so.
+
+## SEO
+
+- Set `NEXT_PUBLIC_SITE_URL` (e.g. `https://yourdomain.com`) in Vercel so the sitemap, robots.txt, canonical URLs and structured data point at the real domain.
+- Structured data: `Plumber` (LocalBusiness) on every page, `FAQPage` on Home and service pages, `Service` on each service page. The values come from `site.ts`, so they must match your Google Business Profile exactly.
+- Town/area pages are intentionally not generated: thin copies hurt rankings. Write one real page per town you serve when you have local photos and jobs to show.
 
 ## Design
 

@@ -4,10 +4,12 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
 import { MobileCallBar } from "@/components/MobileCallBar";
+import { BusinessJsonLd, siteUrl } from "@/components/JsonLd";
 import { Footer } from "@/components/Footer";
 import { site } from "@/content/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: `${site.name} — Plumbing & heating in ${site.city}`,
     template: `%s · ${site.name}`,
@@ -28,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body className="pb-[76px] md:pb-0">
+        <BusinessJsonLd />
         <a
           href="#main"
           className="absolute left-4 -top-24 z-[100] rounded-sm bg-ink px-4 py-3 text-on-dark focus:top-4"
