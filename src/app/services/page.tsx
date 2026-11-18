@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { services } from "@/content/services";
+import { services, priceFactors } from "@/content/services";
 import { site } from "@/content/site";
 import { Photo } from "@/components/Photo";
 import { PageHead } from "@/components/PageHead";
 import { CtaBand } from "@/components/CtaBand";
 import { VideoBand } from "@/components/VideoBand";
-import { videos } from "@/content/media";
+import { videos, byId } from "@/content/media";
+import { LoopVideo } from "@/components/LoopVideo";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -37,11 +38,62 @@ export default function ServicesPage() {
                   <li key={j}>{j}</li>
                 ))}
               </ul>
+              <p className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-line pt-4">
+                <span className="font-display text-xl font-extrabold [font-stretch:112%]">{s.price}</span>
+                <span className="text-[0.95rem] text-muted">{s.priceNote}</span>
+              </p>
             </div>
-            <Photo id={s.photo} elbow={i % 2 ? "tl" : "tr"} className="aspect-[5/4]" />
+            {s.video ? (
+              <div className={`photo aspect-[5/4] ${i % 2 ? "rounded-tl-elbow" : "rounded-tr-elbow"}`}>
+                <LoopVideo src={byId(s.video).video!} poster={byId(s.video).src} />
+              </div>
+            ) : (
+              <Photo id={s.photo} elbow={i % 2 ? "tl" : "tr"} className="aspect-[5/4]" />
+            )}
           </section>
         ))}
       </div>
+      <section className="section bg-surface" aria-labelledby="prices-title">
+        <div className="wrap grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+          <div className="grid content-start gap-5">
+            <p className="label">Price guide</p>
+            <h2 id="prices-title" className="max-w-[14ch]">Typical prices, before you call.</h2>
+            <p className="lede">
+              Every job gets a fixed price once we&apos;ve seen it. These ranges tell you what to expect so there are no
+              surprises.
+            </p>
+            <p className="placeholder-note">Placeholder ranges: fill in your real prices in <code>src/content/services.ts</code>.</p>
+            <div>
+              <h3 className="mb-3 text-lg">What changes the price</h3>
+              <ul className="brand-list text-muted">
+                {priceFactors.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <table className="w-full border-collapse self-start text-left">
+            <caption className="sr-only">Typical price ranges by service</caption>
+            <thead>
+              <tr className="border-b-2 border-ink text-sm uppercase tracking-[0.06em] text-muted">
+                <th scope="col" className="py-3 pr-4 font-semibold">Service</th>
+                <th scope="col" className="py-3 text-right font-semibold">Typical price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.map((s) => (
+                <tr key={s.slug} className="border-b border-line align-top">
+                  <th scope="row" className="py-4 pr-4 font-normal">
+                    <a href={`#${s.slug}`} className="font-semibold text-ink no-underline hover:underline">{s.title}</a>
+                    <span className="mt-1 block text-[0.95rem] text-muted">{s.priceNote}</span>
+                  </th>
+                  <td className="py-4 text-right font-display text-lg sm:whitespace-nowrap font-extrabold [font-stretch:112%]">{s.price}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <VideoBand video={videos.gloves} labelledBy="van-title">
         <div className="wrap grid gap-6 py-28 md:py-36">
           <p className="label">On every job</p>

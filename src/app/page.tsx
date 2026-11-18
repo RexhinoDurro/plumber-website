@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site, testimonials, faqs } from "@/content/site";
+import { site, testimonials, faqs, audiences } from "@/content/site";
 import { services } from "@/content/services";
 import { hero, byId, videos } from "@/content/media";
 import { VideoBand } from "@/components/VideoBand";
@@ -7,6 +7,7 @@ import { Photo } from "@/components/Photo";
 import { CtaBand } from "@/components/CtaBand";
 import { PhoneIcon } from "@/components/Icons";
 import { QuickQuote } from "@/components/QuickQuote";
+import { VideoShowcase } from "@/components/VideoShowcase";
 
 const steps = [
   {
@@ -130,6 +131,32 @@ export default function Home() {
       </section>
 
 
+      {/* ===== Two audiences ===== */}
+      <section className="section pt-0" aria-labelledby="who-title">
+        <div className="wrap">
+          <h2 id="who-title" className="sr-only">Who we work for</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            {audiences.map((a, i) => (
+              <article key={a.id} className="grid overflow-hidden rounded-md bg-surface shadow-hair">
+                <Photo id={a.photo} elbow={i ? "tl" : "tr"} className="aspect-[16/8] rounded-none" sizes="(max-width: 860px) 100vw, 50vw" />
+                <div className="grid gap-4 p-7 md:p-8">
+                  <h3 className="text-[1.75rem]">{a.title}</h3>
+                  <p className="text-muted">{a.text}</p>
+                  <ul className="brand-list">
+                    {a.points.map((pt) => (
+                      <li key={pt}>{pt}</li>
+                    ))}
+                  </ul>
+                  <Link href="/contact" className="btn btn-secondary mt-2 justify-self-start">
+                    {a.cta}
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ===== Reviews ===== */}
       <section className="section pt-0" aria-labelledby="reviews-title">
         <div className="wrap">
@@ -158,7 +185,10 @@ export default function Home() {
                 </blockquote>
                 <figcaption className={`text-[0.9375rem] ${i === 0 ? "text-on-dark" : "text-muted"}`}>
                   <b className={`block ${i === 0 ? "" : "text-ink"}`}>{t.name}</b>
-                  {t.job} · {t.place}
+                  {t.job} · {t.place} ·{" "}
+                  <a href={site.reviewsUrl} className={i === 0 ? "text-on-dark" : "text-water"}>
+                    {t.source} review
+                  </a>
                 </figcaption>
               </figure>
             ))}
@@ -234,6 +264,8 @@ export default function Home() {
           </ol>
         </div>
       </section>
+
+      <VideoShowcase />
 
       {/* ===== Emergency band ===== */}
       <VideoBand video={videos.drip} align="full" labelledBy="emergency-title" className="section">

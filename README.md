@@ -17,8 +17,8 @@ Everything business-specific is in **`src/content/`**:
 | File | What to change |
 |---|---|
 | `site.ts` | Business name, phone, email, address, hours, areas, licence, insurance, founding year. Reviews (`testimonials`): **add real reviews only**. FAQ answers marked TODO. |
-| `services.ts` | Services, descriptions and included jobs. Add your heating certifications. |
-| `media.ts` | Photos and videos. They are free Pexels placeholders; swap in photos of your own jobs (put them in `/public` and use `/your-photo.jpg` paths). |
+| `services.ts` | Services, descriptions, included jobs and **typical price ranges** (placeholders). Add your heating certifications. |
+| `media.ts` | Photos, gallery videos and the "Watch a job" clip. They are free Pexels placeholders; swap in photos of your own jobs (put them in `/public` and use `/your-photo.jpg` paths). |
 
 Search the code for `TODO` and `[` to find every placeholder.
 
@@ -28,6 +28,8 @@ The quote form (`src/app/contact/actions.ts`) validates input but only logs requ
 
 See **`DESIGN.md`** for the design system: colors and their roles, type, spacing, the "pipe-elbow" photo corner and the blue pipe line. Tokens live in the `@theme` block in `src/app/globals.css`, so use the Tailwind classes (`bg-ink`, `text-brand`, `rounded-tr-elbow`…) rather than raw values.
 
+- UX: sticky call/quote bar on phones, "Get a quote" in the header, a 3-field quote form in the hero, separate homeowner and landlord paths, a price guide, review source links (set `reviewsUrl` in `site.ts`).
+- Video: background loops (hero and bands), clips that play only while visible on the Services page, a click-to-play "Watch a job" player, and video items in the gallery (with a Videos filter).
 - Fonts are self-hosted (`@fontsource-variable/archivo`, `@fontsource-variable/public-sans`).
 - Motion: the hero and two background bands use slow muted video loops; the "How a job works" pipe line draws on scroll (CSS scroll-driven animation). All of it turns off with `prefers-reduced-motion`.
 - Accessibility: skip link, visible focus rings, a keyboard-operable gallery lightbox (arrows / Esc), labelled form fields with inline errors, and text contrast of at least 4.5:1.

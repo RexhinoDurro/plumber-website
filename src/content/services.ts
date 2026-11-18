@@ -5,6 +5,9 @@ export type Service = {
   body: string;
   jobs: string[];
   photo: string; // id from media.ts
+  video?: string; // id from media.ts with a video
+  price: string; // TODO: real typical range, e.g. "€90–€180"
+  priceNote: string;
 };
 
 export const services: Service[] = [
@@ -15,6 +18,9 @@ export const services: Service[] = [
     body: "When water is going where it shouldn't, you need someone who answers the phone. We tell you how to stop the water while we're on our way, then find the cause and fix it properly. No temporary patch that fails next week.",
     jobs: ["Burst and leaking pipes", "Overflowing toilets and cisterns", "Leaks through ceilings", "No water or low pressure"],
     photo: "faucet-repair",
+    price: "[from €—] call-out",
+    priceNote: "Most leaks are fixed in one visit; parts extra.",
+    video: "faucet-repair",
   },
   {
     slug: "drains",
@@ -23,6 +29,8 @@ export const services: Service[] = [
     body: "We clear the blockage and tell you why it happened, whether that's grease, roots or a badly laid pipe, so it doesn't keep coming back.",
     jobs: ["Kitchen and bathroom sinks", "Toilets and showers", "Outside gullies and drains", "Slow-draining pipes"],
     photo: "doing-plumbing",
+    price: "[€— to €—]",
+    priceNote: "Depends on access and whether a camera inspection is needed.",
   },
   {
     slug: "bathrooms",
@@ -31,6 +39,9 @@ export const services: Service[] = [
     body: "We plan the pipework before the tiles go on, so nothing has to be ripped out later. You get a written plan, a fixed price and one person to call.",
     jobs: ["Full bathroom refits", "Showers and shower valves", "Toilets, basins and baths", "Wet rooms"],
     photo: "bathroom",
+    price: "[from €—] full refit",
+    priceNote: "Fixed price after a free survey. Tiling and fittings quoted separately.",
+    video: "brass-shower",
   },
   {
     slug: "kitchens",
@@ -39,6 +50,9 @@ export const services: Service[] = [
     body: "Whether it's a new tap or the plumbing for a whole new kitchen, we fit it neatly and test every joint before we leave.",
     jobs: ["Sinks and taps", "Dishwasher and washing machine connections", "Water filters", "Waste and trap replacement"],
     photo: "kitchen-tap",
+    price: "[from €—] per fitting",
+    priceNote: "Most connections take under two hours.",
+    video: "kitchen-tap",
   },
   {
     slug: "heating",
@@ -47,6 +61,8 @@ export const services: Service[] = [
     body: "We service boilers, balance radiators and track down why one room never gets warm. [TODO: list your gas or heating certifications here.]",
     jobs: ["Boiler servicing and repairs", "Radiator installation and moves", "Power flushing", "Thermostats and controls"],
     photo: "radiator-pipe",
+    price: "[from €—] annual service",
+    priceNote: "Repairs priced after diagnosis; parts quoted before fitting.",
   },
   {
     slug: "pipework",
@@ -55,5 +71,15 @@ export const services: Service[] = [
     body: "Renovating? We reroute pipes so your plans work, and leave everything accessible and labelled for whoever comes next.",
     jobs: ["Re-piping old houses", "Moving pipes for renovations", "Outside taps", "Stopcock replacement"],
     photo: "steel-pipes",
+    price: "[quoted per job]",
+    priceNote: "Priced after a site visit, by run length and access.",
   },
+];
+
+/** Typical price ranges are placeholders: fill them in before going live. Ranges build trust; exact quotes come after a look at the job. */
+export const priceFactors = [
+  "How easy it is to reach the pipe or fitting",
+  "Parts: we quote these before fitting anything",
+  "Out-of-hours call-outs (evenings, weekends)",
+  "Whether making good (plaster, tiles) is needed afterwards",
 ];

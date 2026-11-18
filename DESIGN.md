@@ -69,6 +69,12 @@ Rules: one bright element per screen (the blue CTA; white button on the blue ban
 - Inputs: 52 px tall, visible labels, 6 px radius, 2 px border on focus.
 - FAQ: native `<details>`.
 
+## Conversion patterns
+
+- Phones: a sticky bottom bar with **Call now** (primary) and **Get a quote** (secondary) that respects the safe area. Desktop: phone and "Get a quote" in the header.
+- Hero: a three-field quote card (name, phone, job type). Proof strip directly under it.
+- Price guide: ranges plus "what changes the price"; the exact price comes after a look at the job.
+
 ## Imagery
 
-Real work photos only. For now these are Pexels placeholders, credited on `/gallery` and in `src/content/media.ts`; replace them with the business's own job photos. No stock smiles, no AI images. Icons: none decorative; the content does the work.
+Real work photos and short clips only. Video plays muted, only while visible, and never with reduced motion; the hero, promise and emergency bands use background loops, and the "Watch a job" player is click-to-play with controls. For now these are Pexels placeholders, credited on `/gallery` and in `src/content/media.ts`; replace them with the business's own job photos. No stock smiles, no AI images. Icons: none decorative; the content does the work.

@@ -16,11 +16,11 @@ export default function GalleryPage() {
         image="bathroom"
         label="Our work"
         title="Recent jobs, big and small."
-        lede="Filter by type of job and open any photo to see it full size."
+        lede="Filter by type of job, open any photo full size, or play the short videos of work in progress."
       />
       <div className="wrap pb-24 pt-16">
         <p className="placeholder-note mb-8 max-w-[70ch]">
-          These are free stock photos from Pexels, used as placeholders. Replace them with photos of your own jobs in{" "}
+          These are free stock photos and videos from Pexels, used as placeholders. Replace them with photos of your own jobs in{" "}
           <code>src/content/media.ts</code>. Real work builds far more trust.
         </p>
         <Gallery photos={photos} />

@@ -12,6 +12,7 @@ export type Photo = {
   title: string;
   credit: string;
   creditUrl: string;
+  video?: string; // MP4 (Pexels) — tiles with a video play it in the viewer
 };
 
 const photo = (id: number, file: string, w = 1600) =>
@@ -74,6 +75,7 @@ export const photos: Photo[] = [
     title: "Leaking tap repair",
     credit: "Alejandro Torres",
     creditUrl: "https://www.pexels.com/video/close-up-of-plumber-repairing-faucet-9890448/",
+    video: "https://videos.pexels.com/video-files/9890448/9890448-hd_1280_720_30fps.mp4",
   },
   {
     id: "radiator-pipe",
@@ -92,6 +94,7 @@ export const photos: Photo[] = [
     title: "Brass shower fit-out",
     credit: "Curtis Adams",
     creditUrl: "https://www.pexels.com/video/a-shower-head-with-a-brass-finish-and-a-hand-held-shower-head-19228418/",
+    video: "https://videos.pexels.com/video-files/19228418/19228418-hd_1280_720_30fps.mp4",
   },
   {
     id: "boiler-adjust",
@@ -110,6 +113,7 @@ export const photos: Photo[] = [
     title: "Kitchen sink leak",
     credit: "Zulfugar Karimov",
     creditUrl: "https://www.pexels.com/video/leakage-problem-in-modern-kitchen-sink-32711364/",
+    video: "https://videos.pexels.com/video-files/32711364/13945105_640_360_30fps.mp4",
   },
   {
     id: "spanner",
@@ -128,6 +132,7 @@ export const photos: Photo[] = [
     title: "Bathroom refit",
     credit: "Curtis Adams",
     creditUrl: "https://www.pexels.com/video/a-bathroom-at-the-person-19228176/",
+    video: "https://videos.pexels.com/video-files/19228176/19228176-hd_1920_1080_30fps.mp4",
   },
   {
     id: "doing-plumbing",
@@ -137,6 +142,7 @@ export const photos: Photo[] = [
     title: "Under-basin repair",
     credit: "Stepan SK",
     creditUrl: "https://www.pexels.com/video/a-person-doing-plumbing-7584762/",
+    video: "https://videos.pexels.com/video-files/7584762/7584762-hd_1280_720_25fps.mp4",
   },
   {
     id: "pressure-gauge",
@@ -155,6 +161,7 @@ export const photos: Photo[] = [
     title: "New kitchen tap",
     credit: "Curtis Adams",
     creditUrl: "https://www.pexels.com/video/water-flowing-from-a-faucet-6356430/",
+    video: "https://videos.pexels.com/video-files/6356430/6356430-hd_1280_720_24fps.mp4",
   },
   {
     id: "gloves-tools",
@@ -164,6 +171,7 @@ export const photos: Photo[] = [
     title: "Ready for the job",
     credit: "Alejandro Torres",
     creditUrl: "https://www.pexels.com/video/plumbing-tools-and-plumber-putting-on-gloves-9890453/",
+    video: "https://videos.pexels.com/video-files/9890453/9890453-hd_1920_1080_30fps.mp4",
   },
   {
     id: "shower-flow",
@@ -173,6 +181,7 @@ export const photos: Photo[] = [
     title: "Shower pressure fixed",
     credit: "Curtis Adams",
     creditUrl: "https://www.pexels.com/video/water-flowing-from-a-shower-head-15887131/",
+    video: "https://videos.pexels.com/video-files/15887131/15887131-hd_1280_720_30fps.mp4",
   },
   {
     id: "apartment-fix",
@@ -182,6 +191,7 @@ export const photos: Photo[] = [
     title: "Rental flat call-out",
     credit: "Anastasia Shuraeva",
     creditUrl: "https://www.pexels.com/video/a-man-fixing-an-object-inside-the-apartment-7647713/",
+    video: "https://videos.pexels.com/video-files/7647713/7647713-hd_1280_720_24fps.mp4",
   },
   {
     id: "wrench-wall",
@@ -191,6 +201,7 @@ export const photos: Photo[] = [
     title: "The workshop",
     credit: "Kindel Media",
     creditUrl: "https://www.pexels.com/video/plumbers-wrench-hanged-on-wall-8488162/",
+    video: "https://videos.pexels.com/video-files/8488162/8488162-hd_1920_1080_30fps.mp4",
   },
   {
     id: "dripping-tap",
@@ -200,6 +211,7 @@ export const photos: Photo[] = [
     title: "Dripping tap",
     credit: "vinod kashyap",
     creditUrl: "https://www.pexels.com/video/water-dropping-from-a-faucet-9200530/",
+    video: "https://videos.pexels.com/video-files/9200530/9200530-hd_1920_1080_30fps.mp4",
   },
   {
     id: "shower-head",
@@ -209,8 +221,18 @@ export const photos: Photo[] = [
     title: "Shower head upgrade",
     credit: "Curtis Adams",
     creditUrl: "https://www.pexels.com/video/a-shower-head-is-shown-in-a-bathroom-19227389/",
+    video: "https://videos.pexels.com/video-files/19227389/19227389-hd_1280_720_30fps.mp4",
   },
 ];
+
+/** The "watch a job" video on the home page. */
+export const showcase = {
+  src: "https://videos.pexels.com/video-files/7584762/7584762-hd_1280_720_25fps.mp4",
+  poster: still(7584762, "pexels-photo-7584762"),
+  title: "Under-basin repair, start to finish",
+  credit: "Stepan SK",
+  creditUrl: "https://www.pexels.com/video/a-person-doing-plumbing-7584762/",
+};
 
 export const byId = (id: string) => {
   const p = photos.find((x) => x.id === id);

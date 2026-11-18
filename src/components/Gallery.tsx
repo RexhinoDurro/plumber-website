@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { categories, type Category, type Photo } from "@/content/media";
 
-type Filter = "All" | Category;
+type Filter = "All" | "Videos" | Category;
 
 // Varied tile shapes so the masonry reads like a real photo wall.
 const shapes = ["aspect-[4/5]", "aspect-[4/3]", "aspect-square", "aspect-[3/4]", "aspect-[16/10]"];
@@ -16,12 +16,17 @@ export function Gallery({ photos }: { photos: Photo[] }) {
   const openerRef = useRef<HTMLButtonElement | null>(null);
 
   const visible = useMemo(
-    () => (filter === "All" ? photos : photos.filter((p) => p.category === filter)),
+    () =>
+      filter === "All"
+        ? photos
+        : filter === "Videos"
+          ? photos.filter((p) => p.video)
+          : photos.filter((p) => p.category === filter),
     [filter, photos],
   );
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { All: photos.length };
+    const c: Record<string, number> = { All: photos.length, Videos: photos.filter((p) => p.video).length };
     for (const p of photos) c[p.category] = (c[p.category] ?? 0) + 1;
     return c;
   }, [photos]);
@@ -33,6 +38,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
   };
 
   const close = useCallback(() => dialogRef.current?.close(), []);
+  // Arrow keys inside a video's own controls should seek, not change item.
   const step = useCallback(
     (d: number) => setIndex((i) => (i === null ? i : (i + d + visible.length) % visible.length)),
     [visible.length],
@@ -46,6 +52,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
       openerRef.current?.focus();
     };
     const onKey = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).tagName === "VIDEO") return;
       if (e.key === "ArrowRight") step(1);
       if (e.key === "ArrowLeft") step(-1);
     };
@@ -58,7 +65,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
   }, [step]);
 
   const current = index === null ? null : visible[index];
-  const filters: Filter[] = ["All", ...categories];
+  const filters: Filter[] = ["All", "Videos", ...categories];
 
   return (
     <>
@@ -89,6 +96,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
             <button
               type="button"
               onClick={(e) => open(i, e.currentTarget)}
+              aria-label={`${p.video ? "Play video" : "Open photo"}: ${p.title}`}
               className="group block w-full cursor-zoom-in text-left"
             >
               <span
@@ -101,6 +109,14 @@ export function Gallery({ photos }: { photos: Photo[] }) {
                   sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 400px"
                   className="zoom-img object-cover transition-transform duration-500 ease-out-soft group-hover:scale-[1.03]"
                 />
+                {p.video && (
+                  <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-ink/85 px-3 py-1 text-[0.8125rem] font-semibold text-on-dark">
+                    <svg viewBox="0 0 24 24" className="size-3.5" fill="currentColor" aria-hidden="true">
+                      <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" />
+                    </svg>
+                    Video
+                  </span>
+                )}
               </span>
               <span className="flex justify-between gap-3 px-1 pt-3 text-[0.95rem]">
                 <b className="font-semibold">{p.title}</b>
@@ -114,7 +130,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
       <dialog
         ref={dialogRef}
         className="lightbox m-auto w-full max-w-[min(1200px,94vw)] bg-transparent p-0 text-on-dark backdrop:bg-ink/90"
-        aria-label={current ? current.title : "Photo viewer"}
+        aria-label={current ? current.title : "Photo and video viewer"}
         onClick={(e) => e.target === dialogRef.current && close()}
       >
         <div className="on-dark">
@@ -126,7 +142,21 @@ export function Gallery({ photos }: { photos: Photo[] }) {
           {current && (
             <figure className="m-0">
               <div className="relative aspect-[16/10] w-full overflow-hidden rounded-md bg-ink-soft">
-                <Image src={current.src} alt={current.alt} fill sizes="94vw" className="object-contain" />
+                {current.video ? (
+                  <video
+                    key={current.id}
+                    className="size-full object-contain"
+                    src={current.video}
+                    poster={current.src}
+                    controls
+                    autoPlay
+                    muted
+                    playsInline
+                    aria-label={current.alt}
+                  />
+                ) : (
+                  <Image src={current.src} alt={current.alt} fill sizes="94vw" className="object-contain" />
+                )}
               </div>
               <figcaption className="flex flex-wrap justify-between gap-4 px-1 py-4">
                 <span>

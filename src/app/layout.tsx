@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
+import { MobileCallBar } from "@/components/MobileCallBar";
 import { Footer } from "@/components/Footer";
 import { site } from "@/content/site";
 
@@ -25,7 +26,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>
+      <body className="pb-[76px] md:pb-0">
         <a
           href="#main"
           className="absolute left-4 -top-24 z-[100] rounded-sm bg-ink px-4 py-3 text-on-dark focus:top-4"
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Header />
         <main id="main">{children}</main>
         <Footer />
+        <MobileCallBar />
       </body>
     </html>
   );
