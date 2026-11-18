@@ -79,3 +79,15 @@ Browsers without scroll-driven animation simply show the finished state.
 ## Imagery
 
 Real work photos and short clips only. Video plays muted, only while visible, and never with reduced motion; the hero, promise and emergency bands use background loops, and the "Watch a job" player is click-to-play with controls. For now these are Pexels placeholders, credited on `/gallery` and in `src/content/media.ts`; replace them with the business's own job photos. No stock smiles, no AI images. Icons: none decorative; the content does the work.
+
+## Dashboard (/admin)
+
+Same tokens, different job: a work tool read many times a day, not a page to be impressed by.
+
+- **One verdict first.** The overview opens with *waiting for a reply* (count + oldest wait) at the largest size, top-left. Every other number shows last week next to it.
+- **Brand blue stays in the frame** (nav, buttons, bars). Colour on data means state: `ok` green = good/online, `warn` amber = slow or waiting over 5 minutes, `danger` red = urgent. Always with a word or arrow, never colour alone.
+- **Ink sidebar** with the elbow mark; content on `bg` with white `admin-card`s (radius md, hair shadow). No borders where spacing does the job.
+- **Tables for records** (leads): tabular numbers, muted rules, status chips, a side drawer for detail instead of a new page.
+- **Inbox in three panes** (list, thread, customer). Live updates change rows in place so the list never jumps while you work; new chats go on top with a short highlight.
+- **Every empty, loading and offline state is designed** (skeletons, "Reconnecting…", "Nobody is waiting"). Sample records always carry a dashed **Demo** tag.
+- Motion: toasts and drawers slide in over 240–260 ms ease-out; nothing else moves. Reduced motion respected.

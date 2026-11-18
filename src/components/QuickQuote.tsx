@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { sendQuickQuote, type QuickState } from "@/app/contact/actions";
+import { sendQuickQuote, type QuickState } from "@/app/(site)/contact/actions";
 import { site } from "@/content/site";
 
 const initial: QuickState = { ok: false, errors: {} };
@@ -60,6 +60,11 @@ export function QuickQuote() {
               ))}
             </select>
           </div>
+          {state.formError && (
+            <p role="alert" className="rounded-sm border-[1.5px] border-[#b3261e]/40 bg-[#fdecea] px-4 py-3 text-[0.95rem] font-medium text-[#8c1d18]">
+              {state.formError}
+            </p>
+          )}
           <button type="submit" className="btn w-full" disabled={pending}>
             {pending ? "Sending…" : "Request my callback"}
           </button>

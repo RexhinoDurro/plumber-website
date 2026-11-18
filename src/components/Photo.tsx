@@ -11,24 +11,30 @@ const elbowClass: Record<Elbow, string> = {
   none: "",
 };
 
-/** A photo frame with one big rounded "pipe-elbow" corner. */
+/** A photo frame with one big rounded "pipe-elbow" corner. Pass a built-in photo `id`, or `src` + `alt`. */
 export function Photo({
   id,
+  src,
+  alt,
   elbow = "none",
   sizes = "(max-width: 860px) 100vw, 50vw",
   className = "",
   priority = false,
 }: {
-  id: string;
+  id?: string;
+  src?: string;
+  alt?: string;
   elbow?: Elbow;
   sizes?: string;
   className?: string;
   priority?: boolean;
 }) {
-  const p = byId(id);
+  const p = id ? byId(id) : { src: src ?? "", alt: alt ?? "" };
+  // Uploaded photos come from the backend host; only Pexels goes through the image optimizer.
+  const remote = !p.src.startsWith("https://images.pexels.com/");
   return (
     <div className={`photo ${elbowClass[elbow]} ${className}`}>
-      <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} />
+      <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} unoptimized={remote} />
     </div>
   );
 }

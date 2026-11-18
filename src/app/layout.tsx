@@ -1,11 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { ViewTransition } from "react";
 import "./globals.css";
-import { Header } from "@/components/Header";
-import { TopBar } from "@/components/TopBar";
-import { MobileCallBar } from "@/components/MobileCallBar";
-import { BusinessJsonLd, siteUrl } from "@/components/JsonLd";
-import { Footer } from "@/components/Footer";
+import { siteUrl } from "@/components/JsonLd";
 import { site } from "@/content/site";
 
 export const metadata: Metadata = {
@@ -29,22 +24,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body className="pb-[76px] md:pb-0">
-        <BusinessJsonLd />
-        <a
-          href="#main"
-          className="absolute left-4 -top-24 z-[100] rounded-sm bg-ink px-4 py-3 text-on-dark focus:top-4"
-        >
-          Skip to content
-        </a>
-        <TopBar />
-        <Header />
-        <ViewTransition>
-          <main id="main">{children}</main>
-        </ViewTransition>
-        <Footer />
-        <MobileCallBar />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

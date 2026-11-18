@@ -4,10 +4,56 @@ A Next.js 16 + Tailwind CSS v4 site for a local plumbing and heating business. P
 
 ## Run it
 
+Two parts: the website (Next.js, this folder) and the backend (Django, `backend/`) that powers live chat, quote requests, the gallery uploads, reviews and the dashboard at **`/admin`**.
+
 ```bash
+# 1. Backend (http://localhost:8000)
+cd backend
+pip install -r requirements.txt
+python manage.py migrate
+ADMIN_USERNAME=admin ADMIN_PASSWORD='choose-a-strong-one' python manage.py seed_demo   # gallery + quick replies + your login
+python manage.py seed_demo --demo     # optional: sample leads/chats/reviews to try the dashboard
+daphne -b 127.0.0.1 -p 8000 config.asgi:application
+
+# 2. Website (http://localhost:3000, dashboard at /admin)
 npm install
-npm run dev     # http://localhost:3000
-npm run build && npm start
+npm run dev
+```
+
+The website still works if the backend is down: the gallery and reviews fall back to the built-in content, and the forms ask people to call.
+
+### Demo data
+
+`seed_demo --demo` adds sample leads, chats and reviews marked **Demo** everywhere in the dashboard. They never reach the website (demo reviews can't be published). Remove them with the **Remove demo data** button on the overview, or `python manage.py clear_demo`.
+
+### Dashboard features
+
+- **Overview:** who is still waiting for a reply and for how long (the number that wins jobs), requests, bookings and average first-reply time against last week, requests per day, the pipeline and live activity.
+- **Inbox:** live chat with website visitors. Typing indicators, unread counts, saved quick replies, close/reopen, and "Add to leads" (keeps the transcript). Visitors see "Online now" while the dashboard is open and "Away" when it isn't.
+- **Leads:** every quote request arrives instantly (sound, toast, tab count, optional desktop alert). Stages New → Contacted → Quoted → Booked / Lost, waiting timers, notes, search.
+- **Gallery:** drag-and-drop photo/video upload with progress. A description is required (for Google and screen readers). Publish/hide, pick home-page photos, and drag to reorder. Changes show on `/gallery` straight away.
+- **Reviews:** add real reviews; publishing needs the customer's consent. The 3 newest replace the home-page placeholders.
+
+### Environment variables
+
+| Where | Variable | Purpose |
+|---|---|---|
+| Website | `NEXT_PUBLIC_API_URL` | Backend URL, e.g. `https://api.yourdomain.com` (default `http://localhost:8000`) |
+| Website | `INTERNAL_API_KEY` | Same value as the backend's; lets the backend rate-limit form posts per visitor |
+| Website | `NEXT_PUBLIC_SITE_URL` | The public site URL (SEO) |
+| Backend | `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS` | Required in production |
+| Backend | `CORS_ALLOWED_ORIGINS` | The website's origin(s), comma-separated. WebSockets accept the same origins |
+| Backend | `PUBLIC_API_URL` | The backend's own public URL (used in media links) |
+| Backend | `REDIS_URL` | Needed in production for live chat across processes (in-memory is for local use) |
+| Backend | `INTERNAL_API_KEY` | Shared secret with the website |
+
+See `.env.example` and `backend/.env.example`.
+
+### Tests
+
+```bash
+cd backend && python -m pytest          # API + WebSocket chat tests
+python e2e/flow.py                       # full browser test; both servers must be running
 ```
 
 ## Before going live: replace the placeholders
@@ -23,7 +69,7 @@ Everything business-specific is in **`src/content/`**:
 
 Search the code for `TODO` and `[` to find every placeholder.
 
-The quote form (`src/app/contact/actions.ts`) validates input but only logs requests on the server. Connect an email service (Resend, Postmark) or your CRM where the TODO says so.
+The quote forms (`src/app/(site)/contact/actions.ts`) send requests to the backend, where they appear in the dashboard under Leads. Gallery photos and reviews are managed from the dashboard; `media.ts` and `testimonials` in `site.ts` are only the fallback when the backend can't be reached.
 
 ## SEO
 

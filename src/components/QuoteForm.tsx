@@ -1,7 +1,7 @@
 "use client";
 
 import { cloneElement, useActionState } from "react";
-import { sendQuoteRequest, type QuoteState } from "@/app/contact/actions";
+import { sendQuoteRequest, type QuoteState } from "@/app/(site)/contact/actions";
 import { site } from "@/content/site";
 
 const initial: QuoteState = { ok: false, errors: {} };
@@ -23,10 +23,16 @@ export function QuoteForm() {
   }
 
   return (
-    <form action={action} noValidate className="grid gap-6 rounded-md bg-surface p-[clamp(24px,4vw,48px)] shadow-hair">
+    <form action={action} noValidate className="relative grid gap-6 rounded-md bg-surface p-[clamp(24px,4vw,48px)] shadow-hair">
       <div>
         <h2 className="text-[clamp(1.75rem,2vw+1rem,2.5rem)]">Get a fixed-price quote</h2>
         <p className="mt-2 text-muted">Takes about a minute. We reply by phone, usually the same working day.</p>
+      </div>
+
+      {/* Spam trap: hidden from people, bots fill it in. */}
+      <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
+        <label htmlFor="website">Leave this empty</label>
+        <input id="website" name="website" tabIndex={-1} autoComplete="off" />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -63,6 +69,11 @@ export function QuoteForm() {
         </span>
       </label>
 
+      {state.formError && (
+        <p role="alert" className="rounded-sm border-[1.5px] border-[#b3261e]/40 bg-[#fdecea] px-4 py-3 text-[0.95rem] font-medium text-[#8c1d18]">
+          {state.formError}
+        </p>
+        )}
       <div className="flex flex-wrap items-center gap-4">
         <button type="submit" className="btn" disabled={pending}>
           {pending ? "Sending…" : "Send my request"}

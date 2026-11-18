@@ -35,7 +35,15 @@ export const site = {
   promise: "A fixed price before we touch a pipe, and we leave the room cleaner than we found it.",
 } as const;
 
-export type Testimonial = { quote: string; name: string; place: string; job: string; source: string; placeholder: boolean };
+export type Testimonial = {
+  quote: string;
+  name: string;
+  place: string;
+  job: string;
+  source: string;
+  sourceUrl?: string;
+  placeholder: boolean;
+};
 
 /** TODO: replace with real reviews (with the customer's permission). Never publish invented reviews. */
 export const testimonials: Testimonial[] = [

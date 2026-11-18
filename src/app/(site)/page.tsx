@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { site, testimonials, faqs, audiences, guarantees, accreditations } from "@/content/site";
+import { site, faqs, audiences, guarantees, accreditations } from "@/content/site";
 import { services } from "@/content/services";
-import { hero, byId, videos } from "@/content/media";
+import { hero, videos } from "@/content/media";
 import { VideoBand } from "@/components/VideoBand";
 import { Photo } from "@/components/Photo";
 import { CtaBand } from "@/components/CtaBand";
@@ -11,6 +11,8 @@ import { VideoShowcase } from "@/components/VideoShowcase";
 import { ProblemFinder } from "@/components/ProblemFinder";
 import { AreaChecker } from "@/components/AreaChecker";
 import { FaqJsonLd } from "@/components/JsonLd";
+import { Reviews } from "@/components/Reviews";
+import { RecentWork } from "@/components/RecentWork";
 
 const steps = [
   {
@@ -165,44 +167,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== Reviews ===== */}
-      <section className="section pt-0" aria-labelledby="reviews-title">
-        <div className="wrap">
-          <div className="rv mb-12 grid gap-4">
-            <p className="label">What customers say</p>
-            <h2 id="reviews-title" className="max-w-[16ch]">Ask our neighbours.</h2>
-            {testimonials.some((t) => t.placeholder) && (
-              <p className="placeholder-note max-w-[60ch]">
-                Placeholder reviews: replace them with real customer reviews in <code>src/content/site.ts</code>. Never publish
-                invented ones.
-              </p>
-            )}
-          </div>
-          <div className="rv-stagger grid gap-6 md:grid-cols-[1.3fr_1fr_1fr]">
-            {testimonials.map((t, i) => (
-              <figure
-                key={i}
-                className={`m-0 grid content-between gap-6 rounded-md p-8 shadow-hair ${
-                  i === 0 ? "on-dark bg-water text-on-dark" : "bg-surface"
-                }`}
-              >
-                <blockquote
-                  className={i === 0 ? "font-display text-2xl font-bold leading-snug [font-stretch:112%]" : "text-[1.0625rem]"}
-                >
-                  {t.quote}
-                </blockquote>
-                <figcaption className={`text-[0.9375rem] ${i === 0 ? "text-on-dark" : "text-muted"}`}>
-                  <b className={`block ${i === 0 ? "" : "text-ink"}`}>{t.name}</b>
-                  {t.job} · {t.place} ·{" "}
-                  <a href={site.reviewsUrl} className={i === 0 ? "text-on-dark" : "text-water"}>
-                    {t.source} review
-                  </a>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ===== Reviews (from the dashboard, placeholders until there are real ones) ===== */}
+      <Reviews />
 
       {/* ===== Promise: full-bleed video band ===== */}
       <VideoBand video={videos.shower} labelledBy="promise-title">
@@ -362,27 +328,7 @@ export default function Home() {
               See the full gallery
             </Link>
           </div>
-          <div className="grid auto-rows-[160px] grid-cols-12 gap-4 md:auto-rows-[190px]">
-            {[
-              ["bathroom", "col-span-12 row-span-2 md:col-span-7", "tl"],
-              ["radiator-pipe", "col-span-6 md:col-span-5", "none"],
-              ["kitchen-sink-leak", "col-span-6 md:col-span-5", "none"],
-              ["steel-pipes", "col-span-12 md:col-span-4", "none"],
-              ["brass-shower", "col-span-12 md:col-span-8", "br"],
-            ].map(([id, cls, elbow]) => (
-              <figure key={id} className={`lift relative m-0 ${cls}`}>
-                <Photo
-                  id={id}
-                  elbow={elbow as "tl" | "br" | "none"}
-                  className="rv-img h-full"
-                  sizes="(max-width: 760px) 100vw, 60vw"
-                />
-                <figcaption className="absolute bottom-3 left-3 rounded-full bg-surface px-3 py-1 text-[0.8125rem] font-semibold">
-                  {byId(id).title}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <RecentWork />
         </div>
       </section>
 

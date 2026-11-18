@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { site } from "@/content/site";
 import { PhoneIcon } from "@/components/Icons";
+import { Header } from "@/components/Header";
+import { TopBar } from "@/components/TopBar";
+import { Footer } from "@/components/Footer";
 
 export default function NotFound() {
   return (
+    <>
+    <TopBar />
+    <Header />
+    <main id="main">
     <section className="blueprint">
       <div className="wrap grid min-h-[70svh] content-center gap-6 py-24">
         <p className="label">Page not found</p>
@@ -16,5 +23,8 @@ export default function NotFound() {
         </div>
       </div>
     </section>
+    </main>
+    <Footer />
+    </>
   );
 }

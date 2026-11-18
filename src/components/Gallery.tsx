@@ -102,13 +102,26 @@ export function Gallery({ photos }: { photos: Photo[] }) {
               <span
                 className={`relative block overflow-hidden rounded-md bg-photo ${shapes[i % shapes.length]}`}
               >
-                <Image
-                  src={p.src}
-                  alt={p.alt}
-                  fill
-                  sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 400px"
-                  className="zoom-img object-cover transition-transform duration-500 ease-out-soft group-hover:scale-[1.03]"
-                />
+                {p.src ? (
+                  <Image
+                    src={p.src}
+                    alt={p.alt}
+                    fill
+                    unoptimized={!isPexels(p.src)}
+                    sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 400px"
+                    className="zoom-img object-cover transition-transform duration-500 ease-out-soft group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  // Uploaded video without a poster: show its first frame.
+                  <video
+                    src={`${p.video}#t=0.5`}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-hidden="true"
+                    className="absolute inset-0 size-full object-cover transition-transform duration-500 ease-out-soft group-hover:scale-[1.03]"
+                  />
+                )}
                 {p.video && (
                   <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-ink/85 px-3 py-1 text-[0.8125rem] font-semibold text-on-dark">
                     <svg viewBox="0 0 24 24" className="size-3.5" fill="currentColor" aria-hidden="true">
@@ -147,7 +160,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
                     key={current.id}
                     className="size-full object-contain"
                     src={current.video}
-                    poster={current.src}
+                    poster={current.src || undefined}
                     controls
                     autoPlay
                     muted
@@ -155,16 +168,25 @@ export function Gallery({ photos }: { photos: Photo[] }) {
                     aria-label={current.alt}
                   />
                 ) : (
-                  <Image src={current.src} alt={current.alt} fill sizes="94vw" className="object-contain" />
+                  <Image
+                    src={current.src}
+                    alt={current.alt}
+                    fill
+                    unoptimized={!isPexels(current.src)}
+                    sizes="94vw"
+                    className="object-contain"
+                  />
                 )}
               </div>
               <figcaption className="flex flex-wrap justify-between gap-4 px-1 py-4">
                 <span>
                   <b className="font-semibold">{current.title}</b> · {current.category}
                 </span>
-                <a href={current.creditUrl} className="text-sm text-on-dark-muted">
-                  Photo: {current.credit === "Pexels" ? "Pexels" : `${current.credit} / Pexels`}
-                </a>
+                {current.credit && (
+                  <a href={current.creditUrl} className="text-sm text-on-dark-muted">
+                    Photo: {current.credit === "Pexels" ? "Pexels" : `${current.credit} / Pexels`}
+                  </a>
+                )}
               </figcaption>
             </figure>
           )}
@@ -173,6 +195,8 @@ export function Gallery({ photos }: { photos: Photo[] }) {
     </>
   );
 }
+
+const isPexels = (src: string) => src.startsWith("https://images.pexels.com/");
 
 function LbButton({ label, glyph, onClick }: { label: string; glyph: string; onClick: () => void }) {
   return (
