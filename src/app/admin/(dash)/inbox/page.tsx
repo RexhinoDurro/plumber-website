@@ -222,7 +222,7 @@ export default function InboxPage() {
 
   return (
     <div className="-mx-4 -my-6 h-[calc(100svh-120px)] md:-mx-10 md:-my-10 md:h-svh">
-      <div className="grid h-full lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_290px]">
+      <div className="grid h-full grid-cols-[minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_290px]">
         {/* ---- chats list ---- */}
         <section className={`flex min-h-0 flex-col border-r border-line bg-surface ${selected ? "hidden lg:flex" : "flex"}`} aria-label="Chats">
           <div className="border-b border-line px-4 pb-3 pt-6">
