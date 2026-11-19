@@ -6,7 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { site } from "@/content/site";
 import { WS_URL } from "@/lib/api";
 import { useSocket, type SocketState } from "../chat/useSocket";
-import { ElbowMark } from "../Icons";
+import { Logo } from "../Logo";
 import { api, auth, type AdminUser, type Conversation, type Lead, type Message } from "./client";
 import { currentSubscription, disablePush, enablePush, pushSupported, registerWorker } from "./push";
 
@@ -235,14 +235,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AdminCtx.Provider value={ctx}>
-      <div className="min-h-svh bg-bg md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+      <div data-admin className="min-h-svh bg-bg md:grid md:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="on-dark sticky top-0 z-30 flex flex-col bg-ink text-on-dark md:h-svh">
           <div className="flex items-center gap-3 px-5 py-4 md:py-6">
-            <ElbowMark className="size-9 shrink-0" />
-            <div className="min-w-0">
-              <p className="truncate font-display text-[0.95rem] font-bold leading-tight [font-stretch:110%]">{site.name}</p>
-              <p className="text-[0.75rem] text-on-dark-muted">Dashboard</p>
-            </div>
+            <Logo className="h-11 shrink-0 md:h-auto md:w-[140px]" alt={site.name} />
+            <p className="sr-only">Dashboard</p>
             <span
               className="ml-auto flex items-center gap-1.5 text-[0.75rem] text-on-dark-muted md:hidden"
               title={live === "open" ? "Live" : "Reconnecting"}

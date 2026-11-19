@@ -148,7 +148,7 @@ else:
 # ---- Customer follow-up -------------------------------------------------------------
 # Public website address, used in "continue the chat" links sent to visitors.
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
-BUSINESS_NAME = os.environ.get("BUSINESS_NAME", "Northline Plumbing")
+BUSINESS_NAME = os.environ.get("BUSINESS_NAME", "New York City Emergency Plumbing")
 CURRENCY = os.environ.get("CURRENCY", "USD")
 BUSINESS_PHONE = os.environ.get("BUSINESS_PHONE", "(212) 555-0142")
 # Seconds to wait before the automatic reply when nobody has answered (0 = off).

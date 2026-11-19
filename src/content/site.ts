@@ -3,8 +3,8 @@
  * replace it with the real business information before going live.
  */
 export const site = {
-  name: "Northline Plumbing", // TODO: real business name
-  shortName: "Northline",
+  name: "New York City Emergency Plumbing",
+  shortName: "NYC Emergency Plumbing",
   tagline: "Plumbing & heating for homes and rentals",
   city: "New York City", // TODO: your main service area
   phone: "(212) 555-0142", // TODO: real phone number (555-01xx is a fictional placeholder)

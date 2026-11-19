@@ -51,9 +51,9 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
       <ServiceJsonLd name={s.title} description={s.short} slug={s.slug} />
       <FaqJsonLd items={s.faqs} />
       <nav aria-label="Breadcrumb" className="wrap pt-6 text-sm text-muted">
-        <ol className="flex flex-wrap gap-2">
-          <li><Link href="/" className="text-muted">Home</Link> /</li>
-          <li><Link href="/services" className="text-muted">Services</Link> /</li>
+        <ol className="flex flex-wrap items-center gap-2">
+          <li><Link href="/" className="tap min-w-11 text-muted">Home</Link> /</li>
+          <li><Link href="/services" className="tap text-muted">Services</Link> /</li>
           <li aria-current="page" className="font-semibold text-ink">{s.title}</li>
         </ol>
       </nav>

@@ -339,3 +339,15 @@
 }
 .tip:hover::after, .tip:focus-visible::after { display: block; opacity: 1; transform: translate(-50%, 0); animation: tip-in 120ms var(--ease-out-soft); }
 @keyframes tip-in { from { opacity: 0; transform: translate(-50%, 4px); } }
+
+/* ===== Touch screens: every tap target at least 44px (Apple's guideline), without changing the desktop look ===== */
+@media (pointer: coarse) {
+  /* Standalone links (not links inside a sentence) */
+  .tap, footer ul a { display: inline-flex; align-items: center; min-height: 44px; }
+  footer ul { row-gap: 0; }
+  /* Dashboard: buttons, chips, selects and block links. Inline links ignore min-height; charts opt out. */
+  [data-admin] :is(button, a, select, summary, [role="button"]):not(.no-tap, svg *) { min-height: 44px; min-width: 44px; }
+  [data-admin] :is(input:not([type="checkbox"], [type="radio"], [type="file"]), textarea) { min-height: 44px; }
+  /* iPhone zooms into any field with text under 16px when it's tapped */
+  .admin-input, [data-admin] :is(input, select, textarea) { font-size: 16px; }
+}

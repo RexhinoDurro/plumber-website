@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { site } from "@/content/site";
 import { API_URL } from "@/lib/api";
-import { ElbowMark } from "@/components/Icons";
+import { Logo } from "@/components/Logo";
 import { auth } from "@/components/admin/client";
 
 export default function LoginPage() {
@@ -33,11 +33,10 @@ export default function LoginPage() {
   }
 
   return (
-    <main id="main" className="grid min-h-svh md:grid-cols-[1fr_1.1fr]">
+    <main id="main" data-admin className="grid min-h-svh md:grid-cols-[1fr_1.1fr]">
       <section className="on-dark grain blueprint hidden flex-col justify-between bg-ink p-12 text-on-dark md:flex">
         <div className="flex items-center gap-3">
-          <ElbowMark className="size-10" />
-          <span className="font-display text-lg font-bold [font-stretch:110%]">{site.name}</span>
+          <Logo className="h-auto w-[220px]" alt={site.name} priority />
         </div>
         <div className="grid max-w-md gap-4">
           <h1 className="text-[clamp(2.2rem,3vw+1rem,3.4rem)] text-on-dark">Every request, answered fast.</h1>
@@ -55,9 +54,8 @@ export default function LoginPage() {
             submit(new FormData(e.currentTarget));
           }}
         >
-          <div className="mb-2 flex items-center gap-3 md:hidden">
-            <ElbowMark className="size-9" />
-            <span className="font-display font-bold [font-stretch:110%]">{site.name}</span>
+          <div className="mb-2 flex justify-center rounded-md bg-ink p-4 md:hidden">
+            <Logo className="h-auto w-[200px]" alt={site.name} priority />
           </div>
           <div>
             <h2 className="text-[2rem]">Sign in</h2>

@@ -15,7 +15,7 @@ export async function Reviews() {
           </div>
           <div className="grid justify-items-start gap-1 md:justify-items-end">
             <Rating />
-            <a href={site.reviewsUrl} className="text-[0.9375rem] font-semibold text-water">
+            <a href={site.reviewsUrl} className="tap text-[0.9375rem] font-semibold text-water">
               Read all our reviews on Google
             </a>
           </div>
@@ -42,7 +42,7 @@ export async function Reviews() {
               <figcaption className={`text-[0.9375rem] ${i === 0 ? "text-on-dark" : "text-muted"}`}>
                 <b className={`block ${i === 0 ? "" : "text-ink"}`}>{t.name}</b>
                 {t.job} · {t.place} ·{" "}
-                <a href={t.sourceUrl ?? site.reviewsUrl} className={`underline underline-offset-4 ${i === 0 ? "text-on-dark" : "text-water"}`}>
+                <a href={t.sourceUrl ?? site.reviewsUrl} className={`tap underline underline-offset-4 ${i === 0 ? "text-on-dark" : "text-water"}`}>
                   {t.source} review
                 </a>
               </figcaption>

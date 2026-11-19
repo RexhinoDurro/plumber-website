@@ -664,7 +664,7 @@ function MonthBars({
               onMouseLeave={() => setHover(null)}
               onFocus={() => setHover(m.month)}
               onBlur={() => setHover(null)}
-              className="group flex h-full flex-1 cursor-pointer items-end justify-center rounded-t-sm px-[3px] hover:bg-bg/80 focus-visible:outline-2 focus-visible:outline-water"
+              className="no-tap group flex h-full flex-1 cursor-pointer items-end justify-center rounded-t-sm px-[3px] hover:bg-bg/80 focus-visible:outline-2 focus-visible:outline-water"
             >
               <span
                 className={`block w-full max-w-9 rounded-t-[4px] transition-colors ${on ? "bg-ink" : selected ? "bg-brand/35" : "bg-brand"} group-hover:bg-ink`}

@@ -11,12 +11,3 @@ export const CheckIcon = ({ className }: P) => (
     <path d="M20 6 9 17l-5-5" />
   </svg>
 );
-
-/** Brand mark: a pipe elbow, the same shape as the photo corners. */
-export const ElbowMark = ({ className }: P) => (
-  <svg className={className} viewBox="0 0 40 40" fill="none" aria-hidden="true">
-    <rect width="40" height="40" rx="8" fill="#1257d6" />
-    <path d="M10 31V22a12 12 0 0 1 12-12h9" stroke="#ffffff" strokeWidth="6" strokeLinecap="round" />
-    <path d="M7 31h6M31 7v6" stroke="#8cc0ff" strokeWidth="2.5" strokeLinecap="round" />
-  </svg>
-);

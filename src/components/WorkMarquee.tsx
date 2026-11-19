@@ -9,7 +9,7 @@ export function WorkMarquee() {
     <section className="overflow-hidden bg-surface py-16" aria-labelledby="marquee-title">
       <div className="wrap mb-8 flex flex-wrap items-end justify-between gap-4">
         <h2 id="marquee-title" className="text-[clamp(1.75rem,2vw+1rem,2.5rem)]">A few of our recent jobs</h2>
-        <Link href="/gallery" className="font-semibold text-water">See every job</Link>
+        <Link href="/gallery" className="tap font-semibold text-water">See every job</Link>
       </div>
       <div className="marquee">
         <ul className="marquee-track flex w-max gap-4">

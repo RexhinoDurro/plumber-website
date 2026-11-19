@@ -12,7 +12,7 @@ export function EmergencyCta() {
           <h2 id="final-title" className="max-w-[16ch]">Water where it shouldn&apos;t be?</h2>
           <a
             href={site.phoneHref}
-            className="w-fit font-display text-[clamp(2rem,4vw+0.5rem,3.5rem)] font-extrabold leading-none tracking-[-0.02em] text-white no-underline decoration-[3px] hover:underline [font-stretch:125%]"
+            className="tap w-fit font-display text-[clamp(2rem,4vw+0.5rem,3.5rem)] font-extrabold leading-none tracking-[-0.02em] text-white no-underline decoration-[3px] hover:underline [font-stretch:125%]"
           >
             {site.phone}
           </a>

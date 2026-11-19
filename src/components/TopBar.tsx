@@ -17,7 +17,7 @@ export function TopBar() {
           </span>
         </p>
         <p className="hidden items-center gap-x-1.5 sm:flex">
-          <a href={site.licenseLookupUrl} className="text-on-dark-muted underline decoration-on-dark/30 underline-offset-4 hover:text-on-dark">
+          <a href={site.licenseLookupUrl} className="tap text-on-dark-muted underline decoration-on-dark/30 underline-offset-4 hover:text-on-dark">
             {site.licence}
           </a>
           <span aria-hidden="true">·</span> Fully insured

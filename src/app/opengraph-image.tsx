@@ -1,29 +1,31 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "@/content/site";
 
-export const alt = `${site.name}: plumbing and heating, priced before we start`;
+export const alt = `${site.name}: licensed plumbers across ${site.city}, 24/7`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OgImage() {
+/** The picture shown when someone shares a link to the site (WhatsApp, iMessage, Facebook…). */
+export default async function OgImage() {
+  const logo = `data:image/png;base64,${(await readFile(join(process.cwd(), "public/brand/logo-full.png"))).toString("base64")}`;
   return new ImageResponse(
     (
       <div
         style={{
-          width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between",
-          background: "#0a1a33", color: "#f3f7fc", padding: 72, fontFamily: "sans-serif",
+          width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 56,
+          background: "#0a1a33", color: "#f3f7fc", padding: "56px 72px", fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 20, fontSize: 40, fontWeight: 800 }}>
-          <div style={{ width: 64, height: 64, borderRadius: 14, background: "#1257d6", display: "flex" }} />
-          {site.name}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", fontSize: 76, fontWeight: 800, lineHeight: 1.02, letterSpacing: -2 }}>
-          <span>Plumbing fixed properly.</span>
-          <span style={{ color: "#8cc0ff" }}>Priced before we start.</span>
-        </div>
-        <div style={{ display: "flex", fontSize: 30, color: "#b8c6da" }}>
-          Leaks · Drains · Bathrooms · Kitchens · Heating · {site.city}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logo} width={520} height={336} alt="" style={{ objectFit: "contain" }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{ display: "flex", flexDirection: "column", fontSize: 60, fontWeight: 800, lineHeight: 1.05, letterSpacing: -1.5 }}>
+            <span>Licensed plumbers.</span>
+            <span style={{ color: "#f5c04e" }}>All five boroughs.</span>
+          </div>
+          <div style={{ display: "flex", fontSize: 34, fontWeight: 700 }}>24/7 · {site.phone}</div>
         </div>
       </div>
     ),

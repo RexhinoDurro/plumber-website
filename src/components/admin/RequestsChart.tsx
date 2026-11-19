@@ -24,7 +24,7 @@ export function RequestsChart({ days }: { days: Day[] }) {
         {ticks.map((t) => (
           <g key={t}>
             <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="var(--color-line)" strokeDasharray={t ? "3 4" : undefined} />
-            <text x={pad.l - 8} y={y(t) + 4} textAnchor="end" className="fill-muted text-[11px] tabular-nums">
+            <text x={pad.l - 8} y={y(t) + 4} textAnchor="end" className="fill-muted text-[12px] tabular-nums">
               {t}
             </text>
           </g>
@@ -45,7 +45,7 @@ export function RequestsChart({ days }: { days: Day[] }) {
               onMouseLeave={() => setHover(null)}
               onFocus={() => setHover(i)}
               onBlur={() => setHover(null)}
-              className="cursor-default outline-none"
+              className="no-tap cursor-default outline-none"
             >
               {/* hit target bigger than the bar */}
               <rect x={pad.l + i * bw} y={pad.t} width={bw} height={H - pad.t - pad.b} fill={hover === i ? "var(--color-bg)" : "transparent"} />
@@ -56,7 +56,7 @@ export function RequestsChart({ days }: { days: Day[] }) {
                 />
               )}
               {(i % 2 === days.length % 2 || today) && (
-                <text x={pad.l + i * bw + bw / 2} y={H - 8} textAnchor="middle" className={`text-[11px] tabular-nums ${today ? "fill-ink font-semibold" : "fill-muted"}`}>
+                <text x={pad.l + i * bw + bw / 2} y={H - 8} textAnchor="middle" className={`text-[12px] tabular-nums ${today ? "fill-ink font-semibold" : "fill-muted"}`}>
                   {today ? "Today" : label(d.date, true)}
                 </text>
               )}

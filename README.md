@@ -74,6 +74,8 @@ python e2e/real_data.py                  # browser test on an EMPTY database: ev
 python manage.py shell < ../e2e/reset_e2e.py   # (in backend/) removes the "E2E …" records so it can run again
 KEEP=1 python manage.py shell < ../e2e/volume.py && python e2e/volume_ui.py   # 20,000 leads + 15,000 payments
 python e2e/axe_scan.py                   # WCAG 2.2 AA scan (axe-core) of the main pages and the dashboard
+python e2e/mobile_audit.py               # every page + dashboard at 360/390/430px and landscape: no sideways
+                                         #   scroll, 44px tap targets, no iPhone input zoom, no text under 12px
 ```
 
 ## Before going live: replace the placeholders
@@ -90,6 +92,13 @@ Everything business-specific is in **`src/content/`**:
 Search the code for `TODO` and `[` to find every placeholder.
 
 Every form on the site goes to the backend: the contact form, the quick quote on each service page, and the certificate of insurance (COI) request on `/buildings`. All three are in `src/app/(site)/contact/actions.ts`, and each request appears in the dashboard under Leads, where they appear in the dashboard under Leads. Gallery photos and reviews are managed from the dashboard (a fresh database starts with our 9 job photos from `backend/gallery/seed/work`); `media.ts` and `testimonials` in `site.ts` are only the fallback when the backend can't be reached.
+
+## Logo
+
+`public/brand/logo.png` (header, chat, dashboard) and `public/brand/logo-full.png` (footer, with the Fast response ·
+24/7 · Professional · Reliable row). The browser tab icon is the gold 24/7 badge (`src/app/icon.png`); the phone
+home-screen icons are the logo on navy (`src/app/apple-icon.png`, `public/admin-icon-*.png`). The logo is made for a dark
+background, so in the light header it sits on a navy tile.
 
 ## SEO
 

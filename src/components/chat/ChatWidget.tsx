@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { site } from "@/content/site";
 import { API_URL, WS_URL } from "@/lib/api";
-import { ElbowMark } from "../Icons";
+import { Logo } from "../Logo";
 import { useSocket } from "./useSocket";
 import { applyReceipt, Composer, lastSeen, newClientId, PhotoViewer, Thread, TypingBubble, upsert, type ChatMsg } from "./Thread";
 
@@ -337,14 +337,14 @@ export function ChatWidget() {
             </svg>
           </button>
           <span className="relative shrink-0">
-            <ElbowMark className="size-10" />
+            <Logo className="h-12" />
             {biz?.online && <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-ink bg-ok" aria-hidden="true" />}
           </span>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="truncate font-display text-[1.0625rem] font-bold leading-tight text-on-dark [font-stretch:110%]">
-              {site.name}
+            <h2 id={titleId} className="sr-only">
+              Chat with {site.name}
             </h2>
-            <p className={`truncate text-[0.8125rem] ${typing || biz?.online ? "text-sky" : "text-on-dark-muted"}`}>{status}</p>
+            <p className={`text-[0.875rem] leading-snug ${typing || biz?.online ? "text-sky" : "text-on-dark-muted"}`}>{status}</p>
           </div>
           <a href={tel} aria-label={`Call ${site.phone}`} className="grid size-10 place-items-center rounded-full text-on-dark hover:bg-on-dark/10">
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">

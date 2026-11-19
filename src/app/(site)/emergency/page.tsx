@@ -21,7 +21,7 @@ export default function EmergencyPage() {
           <h1 id="em-title" className="max-w-[14ch] text-[clamp(2.6rem,5vw+0.5rem,5rem)]">Water where it shouldn&apos;t be? Call now.</h1>
           <a
             href={site.phoneHref}
-            className="justify-self-start font-display text-[clamp(2.2rem,5vw+0.5rem,4.5rem)] font-extrabold leading-none text-sky no-underline decoration-[3px] hover:underline [font-stretch:125%]"
+            className="tap justify-self-start font-display text-[clamp(2.2rem,5vw+0.5rem,4.5rem)] font-extrabold leading-none text-sky no-underline decoration-[3px] hover:underline [font-stretch:125%]"
           >
             {site.phone}
           </a>
@@ -50,7 +50,7 @@ export default function EmergencyPage() {
                   </span>
                 </div>
                 <p>{p.firstStep}</p>
-                <Link href={`/services/${p.service}`} className="font-semibold text-water">More about this</Link>
+                <Link href={`/services/${p.service}`} className="tap font-semibold text-water">More about this</Link>
               </article>
             ))}
           </div>

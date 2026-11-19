@@ -379,7 +379,7 @@ function Kpi({
         <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-muted">
           {label}
           {tip && (
-            <span className="tip grid size-4 cursor-help place-items-center rounded-full border border-muted/60 text-[0.625rem] font-bold" data-tip={tip} tabIndex={0} aria-label={tip}>
+            <span className="tip grid size-5 cursor-help place-items-center rounded-full border border-muted/60 text-[0.75rem] font-bold" data-tip={tip} tabIndex={0} aria-label={tip}>
               i
             </span>
           )}
@@ -469,7 +469,7 @@ function Heatmap({ grid }: { grid: number[][] }) {
   const shade = (n: number) => (n === 0 ? "var(--color-bg)" : `color-mix(in oklch, var(--color-brand) ${Math.round(18 + (n / max) * 82)}%, white)`);
   return (
     <div className="-mt-8 overflow-x-auto pt-8">
-      <div className="grid min-w-[560px] grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-[3px] text-[0.6875rem] text-muted" role="img" aria-label={`Requests by day and hour over 90 days, ${total} in total`}>
+      <div className="grid min-w-[560px] grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-[3px] text-[0.75rem] text-muted" role="img" aria-label={`Requests by day and hour over 90 days, ${total} in total`}>
         <span />
         {Array.from({ length: 24 }, (_, h) => (
           <span key={h} className="text-center tabular-nums">
@@ -524,11 +524,11 @@ function PushPrompt({ onEnable }: { onEnable: () => void }) {
           <path d="M10 20a2 2 0 0 0 4 0" />
         </svg>
       </span>
-      <p className="min-w-0 flex-1">
+      <p className="min-w-[min(100%,240px)] flex-1">
         <b className="block">Get new chats and requests on this device</b>
         <span className="text-[0.9375rem] text-muted">Push alerts arrive even when the dashboard is closed. On iPhone, add it to your Home Screen first.</span>
       </p>
-      <button type="button" className="btn" onClick={onEnable}>
+      <button type="button" className="btn w-full sm:w-auto" onClick={onEnable}>
         Turn on alerts
       </button>
     </div>

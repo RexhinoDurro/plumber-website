@@ -79,11 +79,11 @@ export function DemoBanner({ count, onCleared }: { count: number; onCleared?: ()
   return (
     <div role="note" className="flex flex-wrap items-center gap-3 rounded-md border-[1.5px] border-dashed border-warn/50 bg-[#fff7ea] px-5 py-3 text-[0.9375rem]">
       <span className="chip bg-warn text-white">Demo</span>
-      <p className="flex-1 text-[#5c3a00]">
+      <p className="min-w-[min(100%,260px)] flex-1 text-[#5c3a00]">
         {count} sample leads, chats, payments and reviews are mixed in so you can try things out. They never appear on the website.
       </p>
       {confirm ? (
-        <span className="flex items-center gap-2">
+        <span className="flex flex-wrap items-center gap-2">
           <span className="text-[0.875rem] font-semibold">Delete all sample records?</span>
           <button type="button" className="btn min-h-10 px-4 text-[0.875rem]" onClick={clear} disabled={busy}>
             {busy ? "Removing…" : "Yes, remove"}

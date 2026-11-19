@@ -26,7 +26,7 @@ export default function ContactPage() {
             <p className="label">Emergency or quick question</p>
             <a
               href={site.phoneHref}
-              className="whitespace-nowrap font-display text-[clamp(1.5rem,1.6vw+1rem,2.2rem)] font-extrabold leading-none text-sky no-underline hover:underline [font-stretch:112%]"
+              className="tap whitespace-nowrap font-display text-[clamp(1.5rem,1.6vw+1rem,2.2rem)] font-extrabold leading-none text-sky no-underline hover:underline [font-stretch:112%]"
             >
               {site.phone}
             </a>
@@ -51,7 +51,7 @@ export default function ContactPage() {
           <div className="grid gap-3 border-t-4 border-brand pt-4">
             <h2 className="text-2xl">Other ways to reach us</h2>
             <p>
-              Email: <a href={`mailto:${site.email}`} className="font-semibold text-water">{site.email}</a>
+              Email: <a href={`mailto:${site.email}`} className="tap font-semibold text-water">{site.email}</a>
             </p>
             <p className="text-muted">{site.address}</p>
           </div>

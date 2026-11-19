@@ -1,6 +1,6 @@
 {
-  "name": "Northline Dashboard",
-  "short_name": "Dashboard",
+  "name": "NYC Emergency Plumbing Dashboard",
+  "short_name": "NYC Plumbing",
   "description": "Chats, quote requests, gallery and reviews.",
   "start_url": "/admin",
   "scope": "/admin",

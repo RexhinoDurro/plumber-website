@@ -10,7 +10,7 @@ import { BackToTop } from "@/components/BackToTop";
 /** Public website chrome. The dashboard under /admin has its own layout. */
 export default function SiteLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="pb-[76px] md:pb-0">
+    <div className="pb-[calc(76px+env(safe-area-inset-bottom))] md:pb-0">
       <BusinessJsonLd />
       <a href="#main" className="absolute left-4 -top-24 z-[100] rounded-sm bg-ink px-4 py-3 text-on-dark focus:top-4">
         Skip to content

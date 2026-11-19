@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { site } from "@/content/site";
-import { ElbowMark, PhoneIcon } from "./Icons";
+import { PhoneIcon } from "./Icons";
+import { Logo } from "./Logo";
 
 const links = [
   { href: "/services", label: "Services" },
@@ -42,22 +43,20 @@ export function Header() {
       }`}
     >
       <div
-        className={`wrap flex min-h-16 items-center gap-3 transition-[min-height] duration-300 ease-out-soft md:gap-6 ${
-          scrolled ? "md:min-h-16" : "md:min-h-[76px]"
+        className={`wrap flex min-h-[72px] items-center gap-3 py-1 transition-[min-height] duration-300 ease-out-soft md:gap-6 ${
+          scrolled ? "md:min-h-[72px]" : "md:min-h-[92px]"
         }`}
       >
-        <Link href="/" aria-label={`${site.name}, home`} className="flex items-center gap-3 no-underline text-ink">
-          <ElbowMark className="size-[34px] shrink-0" />
-          <span className="font-display text-xl font-extrabold tracking-[-0.02em] [font-stretch:125%]">
-            {site.shortName}
-          </span>
+        {/* The logo is made for a dark background: it sits on a small dark tile so the silver lettering stays crisp. */}
+        <Link href="/" aria-label={`${site.name}, home`} className="flex shrink-0 items-center rounded-md bg-ink px-2 py-1 no-underline shadow-hair">
+          <Logo priority className={`h-14 transition-[height] duration-300 ease-out-soft ${scrolled ? "md:h-14" : "md:h-[72px]"}`} />
         </Link>
 
         <nav
           id="site-nav"
           aria-label="Main"
-          className={`${open ? "block" : "hidden"} fixed inset-x-0 top-16 border-b border-line bg-bg px-[clamp(20px,4vw,40px)] pb-8 pt-4
-            lg:static lg:ml-auto lg:block lg:border-0 lg:bg-transparent lg:p-0`}
+          className={`${open ? "block" : "hidden"} absolute inset-x-0 top-full max-h-[calc(100svh-120px)] overflow-y-auto overscroll-contain border-b border-line bg-bg px-[clamp(20px,4vw,40px)] pb-[max(32px,env(safe-area-inset-bottom))] pt-4 shadow-lift
+            lg:static lg:ml-auto lg:block lg:max-h-none lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none`}
         >
           <ul className="flex flex-col lg:flex-row lg:gap-1">
             {links.map((l) => {

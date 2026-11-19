@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0a1a33",
+  // Lets the layout use the full screen on iPhones with a notch / home bar; env(safe-area-inset-*) keeps content clear.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

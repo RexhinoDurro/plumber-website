@@ -39,7 +39,7 @@ export default function ServicesPage() {
                   <li key={j}>{j}</li>
                 ))}
               </ul>
-              <Link href={`/services/${s.slug}`} className="justify-self-start font-semibold text-water">
+              <Link href={`/services/${s.slug}`} className="tap justify-self-start font-semibold text-water">
                 Full details, process and FAQs
               </Link>
               <p className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-line pt-4">
@@ -88,7 +88,7 @@ export default function ServicesPage() {
               {services.map((s) => (
                 <tr key={s.slug} className="border-b border-line align-top">
                   <th scope="row" className="py-4 pr-4 font-normal">
-                    <Link href={`/services/${s.slug}`} className="font-semibold text-ink no-underline hover:underline">{s.title}</Link>
+                    <Link href={`/services/${s.slug}`} className="tap font-semibold text-ink no-underline hover:underline">{s.title}</Link>
                     <span className="mt-1 block text-[0.95rem] text-muted">{s.priceNote}</span>
                   </th>
                   <td className="py-4 text-right font-display text-lg sm:whitespace-nowrap font-extrabold [font-stretch:112%]">{s.price}</td>

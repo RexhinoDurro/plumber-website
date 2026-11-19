@@ -79,7 +79,7 @@ export default function Home() {
                 <Link href="/contact" className="btn btn-secondary !border-on-dark/60 !text-on-dark hover:!bg-on-dark/10">
                   Get a fixed price
                 </Link>
-                <a href={site.smsHref} className="px-2 font-semibold text-on-dark underline decoration-sky underline-offset-4 hover:text-sky">
+                <a href={site.smsHref} className="tap px-2 font-semibold text-on-dark underline decoration-sky underline-offset-4 hover:text-sky">
                   or text us
                 </a>
               </div>
@@ -133,7 +133,7 @@ export default function Home() {
               <p className="label">What&apos;s the problem?</p>
               <h2 id="services-title" className="max-w-[16ch]">From a dripping faucet to a new bathroom.</h2>
             </div>
-            <Link href="/services" className="font-semibold text-water">
+            <Link href="/services" className="tap font-semibold text-water">
               All services and what&apos;s included
             </Link>
           </div>
@@ -336,7 +336,7 @@ export default function Home() {
             </ul>
             <AreaChecker />
             <MapEmbed className="mt-2 aspect-[4/3]" />
-            <Link href="/areas" className="font-semibold text-water">
+            <Link href="/areas" className="tap font-semibold text-water">
               All the areas we cover
             </Link>
           </div>
