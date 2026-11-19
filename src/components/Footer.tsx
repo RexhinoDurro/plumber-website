@@ -45,7 +45,7 @@ export function Footer() {
       <div className="wrap flex flex-wrap justify-between gap-3 border-t border-on-dark/12 py-6 text-sm">
         <p>© {site.name} · {site.licence} · {site.insurance}</p>
         <p>
-          Photos: <Link href="/gallery#credits">Pexels contributors</Link>
+          Gallery photos are our own jobs · <Link href="/credits">Stock photo credits</Link>
         </p>
       </div>
     </footer>

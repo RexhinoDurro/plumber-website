@@ -85,11 +85,11 @@ Everything business-specific is in **`src/content/`**:
 | `site.ts` | Business name, time zone, opening hours (for the live status), guarantees, accreditations, phone, email, address, hours, areas, licence, insurance, founding year. Reviews (`testimonials`): **add real reviews only**. FAQ answers marked TODO. |
 | `services.ts` | Services, descriptions, included jobs and **typical price ranges** (placeholders). Add your heating certifications. |
 | `problems.ts` | The "What's happening?" finder: symptoms, urgency, safe first step, likely causes, linked service. |
-| `media.ts` | Photos, gallery videos and the "Watch a job" clip. They are free Pexels placeholders; swap in photos of your own jobs (put them in `/public` and use `/your-photo.jpg` paths). |
+| `media.ts` | `work`: photos of our own jobs (files in `public/work`), used by the gallery and the home page "Recent work". Everything else (hero video, page photos, video bands, "Watch a job") is free Pexels stock under the Pexels License, credited on `/credits`; swap any of it for your own photos when ready. |
 
 Search the code for `TODO` and `[` to find every placeholder.
 
-Every form on the site goes to the backend: the contact form, the quick quote on each service page, and the certificate of insurance (COI) request on `/buildings`. All three are in `src/app/(site)/contact/actions.ts`, and each request appears in the dashboard under Leads, where they appear in the dashboard under Leads. Gallery photos and reviews are managed from the dashboard; `media.ts` and `testimonials` in `site.ts` are only the fallback when the backend can't be reached.
+Every form on the site goes to the backend: the contact form, the quick quote on each service page, and the certificate of insurance (COI) request on `/buildings`. All three are in `src/app/(site)/contact/actions.ts`, and each request appears in the dashboard under Leads, where they appear in the dashboard under Leads. Gallery photos and reviews are managed from the dashboard (a fresh database starts with our 9 job photos from `backend/gallery/seed/work`); `media.ts` and `testimonials` in `site.ts` are only the fallback when the backend can't be reached.
 
 ## SEO
 

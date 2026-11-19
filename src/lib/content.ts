@@ -1,5 +1,8 @@
 import { cacheLife } from "next/cache";
-import { photos as fallbackPhotos, type Photo } from "@/content/media";
+import { work as fallbackPhotos, type Photo } from "@/content/media";
+
+// Our seeded job photos keep their best crop when served from the backend (e.g. ".../kitchen-high-rise_ab12.jpg").
+const focusFor = (src: string) => fallbackPhotos.find((w) => src.split("/").pop()?.startsWith(w.id))?.focus;
 import { testimonials, site, type Testimonial } from "@/content/site";
 import { API_URL, type ApiMedia, type ApiReview } from "./api";
 
@@ -23,6 +26,7 @@ const toPhoto = (m: ApiMedia): Photo => ({
   credit: m.credit,
   creditUrl: m.creditUrl,
   video: m.video ?? undefined,
+  focus: focusFor(m.src),
 });
 
 /** Gallery page: always fresh, so a new upload shows up straight away. */

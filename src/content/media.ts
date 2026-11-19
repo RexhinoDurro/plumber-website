@@ -1,6 +1,9 @@
 /**
- * Photos and video. These are free-to-use Pexels placeholders
- * (https://www.pexels.com/license/) — replace them with photos of your own jobs.
+ * Two kinds of media:
+ * - `work`: photos of OUR OWN jobs (in /public/work). These are the gallery and the home page "Recent work".
+ * - everything else (hero video, page photos, video bands): free Pexels stock, used under the Pexels License
+ *   (https://www.pexels.com/license/): free for commercial use, editing allowed, credit not required (we credit anyway).
+ *   Never presented as our own jobs. Swap any of them for your own photos whenever you like.
  */
 export type Category = "Repairs" | "Bathrooms" | "Kitchens" | "Heating" | "Pipework";
 
@@ -12,7 +15,9 @@ export type Photo = {
   title: string;
   credit: string;
   creditUrl: string;
-  video?: string; // MP4 (Pexels) — tiles with a video play it in the viewer
+  video?: string; // MP4 — tiles with a video play it in the viewer
+  /** CSS object-position: which part of the photo to keep when it's cropped. */
+  focus?: string;
 };
 
 const photo = (id: number, file: string, w = 1600) =>
@@ -21,10 +26,11 @@ const still = (id: number, slug: string) =>
   `https://images.pexels.com/videos/${id}/${slug}.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=630&w=1200`;
 
 export const hero = {
-  video: "https://videos.pexels.com/video-files/9890448/9890448-hd_1280_720_30fps.mp4",
-  poster: still(9890448, "leak-plumbing-repair-tools-9890448"),
-  credit: "Alejandro Torres",
-  creditUrl: "https://www.pexels.com/video/close-up-of-plumber-repairing-faucet-9890448/",
+  // A plumber at work under a kitchen sink (Pexels, free to use).
+  video: "https://videos.pexels.com/video-files/7584858/7584858-hd_1920_1080_25fps.mp4",
+  poster: still(7584858, "pexels-photo-7584858"),
+  credit: "Stepan SK",
+  creditUrl: "https://www.pexels.com/video/man-fixing-the-faucet-on-the-kitchen-sink-7584858/",
 };
 
 /** Background videos for full-bleed bands (Pexels, free to use). */
@@ -57,6 +63,7 @@ export const videos = {
 
 export type BgVideo = (typeof videos)[keyof typeof videos];
 
+/** Stock photos (Pexels) used around the site. Not shown in the gallery. */
 export const photos: Photo[] = [
   {
     id: "steel-pipes",
@@ -225,6 +232,81 @@ export const photos: Photo[] = [
   },
 ];
 
+const ours = (
+  id: string,
+  title: string,
+  category: Category,
+  alt: string,
+  focus?: string,
+): Photo => ({ id, src: `/work/${id}.jpg`, title, category, alt, focus, credit: "", creditUrl: "" });
+
+/** Photos of our own jobs: the gallery and the home page "Recent work". */
+export const work: Photo[] = [
+  ours(
+    "bathroom-remodel",
+    "Small bathroom remodel",
+    "Bathrooms",
+    "Finished small bathroom with gray textured tile, an open shower with a matte black rain head and a wall niche, a wall-hung oak vanity, a one-piece toilet and a lit mirror cabinet",
+    "50% 55%",
+  ),
+  ours(
+    "kitchen-high-rise",
+    "Kitchen sink & drinking-water faucet",
+    "Kitchens",
+    "Stainless steel double sink with a pull-down faucet and a separate drinking-water faucet in a high-rise kitchen overlooking Manhattan",
+    "50% 30%",
+  ),
+  ours(
+    "boiler-install",
+    "High-efficiency boiler install",
+    "Heating",
+    "Wall-hung high-efficiency boiler with PVC venting, insulated heating pipes, circulator pumps, zone valves and an expansion tank in a basement",
+    "50% 40%",
+  ),
+  ours(
+    "water-heaters",
+    "Building water heater & storage tank",
+    "Heating",
+    "Commercial gas water heater next to a hot-water storage tank, with an expansion tank and new copper piping in a building's mechanical room",
+    "50% 50%",
+  ),
+  ours(
+    "backflow-preventer",
+    "Backflow preventer install",
+    "Pipework",
+    "New brass backflow preventer with test cocks, fitted on the copper water service in a basement",
+    "50% 45%",
+  ),
+  ours(
+    "bathroom-rough-in",
+    "Bathroom rough-in",
+    "Pipework",
+    "Bathroom opened to the studs: cast-iron drain stack, new copper supply lines with shut-off valves and a shower valve roughed in",
+    "50% 60%",
+  ),
+  ours(
+    "shower-valve",
+    "Shower valve replacement",
+    "Repairs",
+    "New shower mixing valve on copper supply lines, fitted through a small opening in a plaster wall",
+    "50% 55%",
+  ),
+  ours(
+    "sump-pumps",
+    "Sump pumps with battery backup",
+    "Repairs",
+    "Main and backup sump pumps in a basement pit with PVC discharge piping and a battery backup system",
+    "50% 80%",
+  ),
+  ours(
+    "crawlspace-drain",
+    "Crawl space drain line",
+    "Pipework",
+    "New white PVC drain line run through a crawl space and connected to the existing cast-iron pipe",
+    "50% 40%",
+  ),
+];
+
 /** The "watch a job" video on the home page. */
 export const showcase = {
   src: "https://videos.pexels.com/video-files/7584762/7584762-hd_1280_720_25fps.mp4",
@@ -235,7 +317,7 @@ export const showcase = {
 };
 
 export const byId = (id: string) => {
-  const p = photos.find((x) => x.id === id);
+  const p = photos.find((x) => x.id === id) ?? work.find((x) => x.id === id);
   if (!p) throw new Error(`Unknown photo ${id}`);
   return p;
 };

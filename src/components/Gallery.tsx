@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { categories, type Category, type Photo } from "@/content/media";
 
@@ -65,7 +66,8 @@ export function Gallery({ photos }: { photos: Photo[] }) {
   }, [step]);
 
   const current = index === null ? null : visible[index];
-  const filters: Filter[] = ["All", "Videos", ...categories];
+  // Only offer filters that have something in them (no "Videos 0").
+  const filters = (["All", "Videos", ...categories] as Filter[]).filter((f) => f === "All" || (counts[f] ?? 0) > 0);
 
   return (
     <>
@@ -107,7 +109,8 @@ export function Gallery({ photos }: { photos: Photo[] }) {
                     src={p.src}
                     alt={p.alt}
                     fill
-                    unoptimized={!isPexels(p.src)}
+                    unoptimized={!canOptimize(p.src)}
+                    style={{ objectPosition: p.focus }}
                     sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 400px"
                     className="zoom-img object-cover transition-transform duration-500 ease-out-soft group-hover:scale-[1.03]"
                   />
@@ -172,7 +175,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
                     src={current.src}
                     alt={current.alt}
                     fill
-                    unoptimized={!isPexels(current.src)}
+                    unoptimized={!canOptimize(current.src)}
                     sizes="94vw"
                     className="object-contain"
                   />
@@ -184,7 +187,7 @@ export function Gallery({ photos }: { photos: Photo[] }) {
                 </span>
                 {current.credit && (
                   <a href={current.creditUrl} className="text-sm text-on-dark-muted">
-                    Photo: {current.credit === "Pexels" ? "Pexels" : `${current.credit} / Pexels`}
+                    Photo: {current.credit}
                   </a>
                 )}
               </figcaption>
@@ -196,7 +199,6 @@ export function Gallery({ photos }: { photos: Photo[] }) {
   );
 }
 
-const isPexels = (src: string) => src.startsWith("https://images.pexels.com/");
 
 function LbButton({ label, glyph, onClick }: { label: string; glyph: string; onClick: () => void }) {
   return (

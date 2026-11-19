@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { canOptimize } from "@/lib/images";
 import { byId } from "@/content/media";
 
 type Elbow = "tl" | "tr" | "bl" | "br" | "none";
@@ -20,6 +21,7 @@ export function Photo({
   sizes = "(max-width: 860px) 100vw, 50vw",
   className = "",
   priority = false,
+  focus,
 }: {
   id?: string;
   src?: string;
@@ -28,13 +30,12 @@ export function Photo({
   sizes?: string;
   className?: string;
   priority?: boolean;
+  focus?: string;
 }) {
-  const p = id ? byId(id) : { src: src ?? "", alt: alt ?? "" };
-  // Uploaded photos come from the backend host; only Pexels goes through the image optimizer.
-  const remote = !p.src.startsWith("https://images.pexels.com/");
+  const p: { src: string; alt: string; focus?: string } = id ? byId(id) : { src: src ?? "", alt: alt ?? "", focus };
   return (
     <div className={`photo ${elbowClass[elbow]} ${className}`}>
-      <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} unoptimized={remote} />
+      <Image src={p.src} alt={p.alt} fill sizes={sizes} priority={priority} unoptimized={!canOptimize(p.src)} style={{ objectPosition: p.focus ?? focus }} />
     </div>
   );
 }
