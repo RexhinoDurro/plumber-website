@@ -19,6 +19,7 @@ const jobForService: Record<string, string> = {
   bathrooms: "Bathroom",
   kitchens: "Kitchen",
   heating: "Heating or boiler",
+  gas: "Gas or Local Law 152",
 };
 
 export function generateStaticParams() {

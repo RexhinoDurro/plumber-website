@@ -69,12 +69,20 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),
+# Production: set DATABASE_URL (Postgres, e.g. from Railway) so real customer data lives in a managed, backed-up database.
+# Locally and in tests it falls back to SQLite. Connections are not kept open by default: under ASGI (daphne) Django
+# recommends CONN_MAX_AGE=0, or use a pooler such as PgBouncer.
+if os.environ.get("DATABASE_URL"):
+    import dj_database_url
+
+    DATABASES = {"default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", "0")), conn_health_checks=True)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -84,7 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = os.environ.get("DJANGO_TIME_ZONE", "Europe/Budapest")
+TIME_ZONE = os.environ.get("DJANGO_TIME_ZONE", "America/New_York")
 USE_I18N = True
 USE_TZ = True
 
@@ -141,7 +149,8 @@ else:
 # Public website address, used in "continue the chat" links sent to visitors.
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
 BUSINESS_NAME = os.environ.get("BUSINESS_NAME", "Northline Plumbing")
-BUSINESS_PHONE = os.environ.get("BUSINESS_PHONE", "+00 000 000 000")
+CURRENCY = os.environ.get("CURRENCY", "USD")
+BUSINESS_PHONE = os.environ.get("BUSINESS_PHONE", "(212) 555-0142")
 # Seconds to wait before the automatic reply when nobody has answered (0 = off).
 AUTO_REPLY_SECONDS = int(os.environ.get("AUTO_REPLY_SECONDS", "60"))
 # Seconds to wait before texting/emailing a reply the visitor hasn't seen (0 = off).

@@ -5,7 +5,7 @@ import logging
 import threading
 
 from django.conf import settings
-from django.db import close_old_connections
+from django.db import close_old_connections, connection
 
 log = logging.getLogger(__name__)
 _keys: dict | None = None
@@ -43,7 +43,6 @@ def _send_all(payload: dict) -> int:
 
     from .models import PushSubscription
 
-    close_old_connections()
     sent = 0
     k = keys()
     for sub in PushSubscription.objects.all():
@@ -64,8 +63,16 @@ def _send_all(payload: dict) -> int:
                 log.warning("Push failed: %s", e)
         except Exception as e:  # pragma: no cover
             log.warning("Push failed: %s", e)
-    close_old_connections()
     return sent
+
+
+def _send_in_thread(payload: dict) -> None:
+    # A background thread gets its own DB connection; close it when done so none are leaked.
+    close_old_connections()
+    try:
+        _send_all(payload)
+    finally:
+        connection.close()
 
 
 def notify_staff(title: str, body: str, url: str = "/admin", tag: str = "") -> None:
@@ -74,4 +81,4 @@ def notify_staff(title: str, body: str, url: str = "/admin", tag: str = "") -> N
     if getattr(settings, "PUSH_SYNC", False):  # tests
         _send_all(payload)
         return
-    threading.Thread(target=_send_all, args=(payload,), daemon=True).start()
+    threading.Thread(target=_send_in_thread, args=(payload,), daemon=True).start()

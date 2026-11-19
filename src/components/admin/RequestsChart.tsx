@@ -20,7 +20,7 @@ export function RequestsChart({ days }: { days: Day[] }) {
 
   return (
     <figure className="relative m-0">
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full overflow-visible" role="img" aria-label={`Requests per day, last 14 days. Total ${totals.reduce((a, b) => a + b, 0)}.`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full overflow-visible" role="group" aria-label={`Requests per day, last 14 days. Total ${totals.reduce((a, b) => a + b, 0)}.`}>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="var(--color-line)" strokeDasharray={t ? "3 4" : undefined} />

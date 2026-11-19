@@ -111,17 +111,74 @@ export type Lead = {
   job: string;
   message: string;
   urgent: boolean;
-  source: "hero" | "contact" | "chat";
+  source: "hero" | "contact" | "chat" | "coi";
   source_label: string;
   status: LeadStatus;
   notes: string;
   first_contacted_at: string | null;
   review_requested_at: string | null;
   conversation: string | null;
+  paid_total: string | null;
   created_at: string;
   updated_at: string;
   demo: boolean;
 };
+export type PaymentMethod = "card" | "cash" | "check" | "zelle" | "bank" | "other";
+export const METHODS: { key: PaymentMethod; label: string }[] = [
+  { key: "card", label: "Card" },
+  { key: "zelle", label: "Zelle" },
+  { key: "check", label: "Check" },
+  { key: "cash", label: "Cash" },
+  { key: "bank", label: "Bank transfer" },
+  { key: "other", label: "Other" },
+];
+export type Payment = {
+  id: number;
+  lead: number | null;
+  customer_name: string;
+  phone: string;
+  email: string;
+  address: string;
+  service: string;
+  description: string;
+  amount: string;
+  method: PaymentMethod;
+  method_label: string;
+  paid_at: string;
+  invoice_number: string;
+  notes: string;
+  demo: boolean;
+  created_at: string;
+};
+export type PaymentPage = { count: number; total: string; results: Payment[]; next_offset: number | null };
+export type PaymentSummary = {
+  currency: string;
+  this_month: { total: string; count: number; average: string };
+  last_month: { total: string; count: number; average: string };
+  all_time: { total: string; count: number; average: string };
+  customers: number;
+  by_service: { service: string; total: string; count: number }[];
+  months: { month: string; total: string }[];
+  services: string[];
+  demo_payments: number;
+};
+
+export function money(v: string | number, currency = "USD", cents = false): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: cents ? 2 : 0, minimumFractionDigits: cents ? 2 : 0 }).format(Number(v));
+}
+
+/** Download a staff-only file (the token can't ride on a plain link). */
+export async function download(path: string, filename: string) {
+  const a = auth.get();
+  const r = await fetch(`${API_URL}${path}`, { headers: a ? { Authorization: `Token ${a.token}` } : {} });
+  if (!r.ok) throw new ApiError(r.status, null);
+  const url = URL.createObjectURL(await r.blob());
+  const link = Object.assign(document.createElement("a"), { href: url, download: filename });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 export type MediaItem = {
   id: number;
   title: string;

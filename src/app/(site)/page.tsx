@@ -7,6 +7,7 @@ import { PhoneIcon } from "@/components/Icons";
 import { Rating } from "@/components/Rating";
 import { MapEmbed } from "@/components/MapEmbed";
 import { EmergencyCta } from "@/components/EmergencyCta";
+import { HeroVideo } from "@/components/HeroVideo";
 import { QuickQuote } from "@/components/QuickQuote";
 import { VideoShowcase } from "@/components/VideoShowcase";
 import { ProblemFinder } from "@/components/ProblemFinder";
@@ -47,18 +48,11 @@ export default function Home() {
         style={{ backgroundImage: `url(${hero.poster})` }}
         aria-labelledby="hero-title"
       >
-        <video
-          className="hero-media hero-settle absolute inset-0 -z-20 size-full object-cover opacity-45"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
+        <HeroVideo
+          src={hero.video}
           poster={hero.poster}
-          aria-hidden="true"
-        >
-          <source src={hero.video} type="video/mp4" />
-        </video>
+          className="hero-media hero-settle absolute inset-0 -z-20 size-full object-cover opacity-45"
+        />
         <div
           className="absolute inset-0 -z-10"
           style={{
@@ -68,7 +62,7 @@ export default function Home() {
         />
         <div className="wrap grid items-end gap-12 pb-14 pt-24 md:pb-16 lg:grid-cols-[1.25fr_0.75fr] lg:gap-16">
           <div className="grid gap-8">
-            <p className="label">Plumber &amp; heating engineer · {site.city} · 24/7 emergencies</p>
+            <p className="label">Licensed plumbers · all five boroughs · 24/7 emergencies</p>
             <h1 id="hero-title" className="max-w-[15ch] text-[clamp(2.6rem,4.4vw+0.6rem,5rem)]">
               <span className="line-mask hero-line"><span>Plumbing fixed properly.</span></span>
               <span className="line-mask hero-line"><span className="text-sky">Priced before we start.</span></span>
@@ -85,6 +79,9 @@ export default function Home() {
                 <Link href="/contact" className="btn btn-secondary !border-on-dark/60 !text-on-dark hover:!bg-on-dark/10">
                   Get a fixed price
                 </Link>
+                <a href={site.smsHref} className="px-2 font-semibold text-on-dark underline decoration-sky underline-offset-4 hover:text-sky">
+                  or text us
+                </a>
               </div>
               <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.9375rem] text-on-dark-muted">
                 <Rating tone="dark" />
@@ -134,7 +131,7 @@ export default function Home() {
           <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
             <div className="grid gap-4">
               <p className="label">What&apos;s the problem?</p>
-              <h2 id="services-title" className="max-w-[16ch]">From a dripping tap to a new bathroom.</h2>
+              <h2 id="services-title" className="max-w-[16ch]">From a dripping faucet to a new bathroom.</h2>
             </div>
             <Link href="/services" className="font-semibold text-water">
               All services and what&apos;s included
@@ -155,7 +152,7 @@ export default function Home() {
             {audiences.map((a) => (
               <li key={a.id}>
                 <Link
-                  href="/contact"
+                  href={a.id === "landlords" ? "/buildings" : "/contact"}
                   className="lift group flex items-center gap-5 rounded-md border-[1.5px] border-line bg-surface p-5 text-ink no-underline hover:border-brand"
                 >
                   <Photo id={a.photo} className="size-20 shrink-0 rounded-sm" sizes="80px" />
@@ -187,7 +184,7 @@ export default function Home() {
               <h2 id="why-title" className="max-w-[14ch]">What to expect when we come round.</h2>
             </div>
             <p className="lede !text-on-dark-muted">
-              Most bad experiences with tradespeople come down to the same few things. Here&apos;s how we handle each one.
+              Most bad experiences with contractors come down to the same few things. Here&apos;s how we handle each one.
             </p>
           </div>
 

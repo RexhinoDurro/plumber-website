@@ -50,9 +50,9 @@ with sync_playwright() as p:
     expect(panel.locator("header").get_by_text("online", exact=True)).to_be_visible(timeout=8000)
     assert panel.locator("input[name=name]").count() == 0, "chat should not ask for a name"
     vis.screenshot(path=f"{SHOTS}/03-visitor-chat-start.png")
-    vis.locator("#chat-draft").fill("Hi, my kitchen tap is dripping non-stop. Can you come this week?")
+    vis.locator("#chat-draft").fill("Hi, my kitchen faucet is dripping non-stop. Can you come this week?")
     vis.keyboard.press("Enter")
-    expect(panel.get_by_text("kitchen tap is dripping")).to_be_visible()
+    expect(panel.get_by_text("kitchen faucet is dripping")).to_be_visible()
     expect(panel.get_by_label("Delivered").first).to_be_visible(timeout=8000)  # staff online: two grey ticks
     print("visitor started chat without a form; delivered ticks ok")
 
@@ -68,11 +68,11 @@ with sync_playwright() as p:
     # --- admin gets the alert and opens the chat -> visitor's ticks turn to Read
     expect(admin.get_by_text("New chat message")).to_be_visible(timeout=8000)
     admin.goto(f"{BASE}/admin/inbox")
-    row = admin.get_by_role("button", name=re.compile("kitchen tap is dripping"))
+    row = admin.get_by_role("button", name=re.compile("kitchen faucet is dripping"))
     expect(row).to_be_visible(timeout=8000)
     expect(row.get_by_text(re.compile("^Visitor "))).to_be_visible()
     row.click()
-    expect(admin.locator("[role=log]").get_by_text("kitchen tap is dripping")).to_be_visible()
+    expect(admin.locator("[role=log]").get_by_text("kitchen faucet is dripping")).to_be_visible()
     expect(panel.get_by_label("Read").first).to_be_visible(timeout=8000)
     print("read receipts ok")
 
@@ -91,12 +91,12 @@ with sync_playwright() as p:
     admin.keyboard.press("Enter")
     expect(panel.get_by_text("We can come Thursday between 9 and 11")).to_be_visible(timeout=8000)
     # saved reply via the "/" shortcut: fills the box, can be edited, Enter sends
-    admin.locator("#reply").type("/post")
+    admin.locator("#reply").type("/zip")
     expect(admin.get_by_role("listbox", name="Saved replies")).to_be_visible()
     admin.keyboard.press("Enter")
-    expect(admin.locator("#reply")).to_have_value(re.compile("What's your postcode"))
+    expect(admin.locator("#reply")).to_have_value(re.compile("What's your ZIP code"))
     admin.keyboard.press("Enter")
-    expect(panel.get_by_text("What's your postcode?")).to_be_visible(timeout=8000)
+    expect(panel.get_by_text("What's your ZIP code?")).to_be_visible(timeout=8000)
     print("admin -> visitor ok (typed + saved reply)")
 
     # visitor answers with a phone number -> picked up as their contact

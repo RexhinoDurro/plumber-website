@@ -24,8 +24,8 @@ FEATURED = ["bathroom", "radiator-pipe", "kitchen-sink-leak", "steel-pipes", "br
 QUICK_REPLIES = [
     ("Hello", "Hi, thanks for getting in touch. I'm reading your message now."),
     ("Ask for photos", "Could you send a photo or two of the problem? It helps us quote properly before we visit."),
-    ("Ask postcode", "What's your postcode? I'll check we cover your area and when we could get to you."),
-    ("Water off", "If water is leaking, turn off the stopcock (usually under the kitchen sink) and switch off the boiler. We're on our way as soon as we can."),
+    ("Ask ZIP code", "What's your ZIP code? I'll check we cover your area and when we could get to you."),
+    ("Water off", "If water is leaking, close the main water shut-off valve (usually by the water meter or under the kitchen sink) and switch off the boiler. We're on our way as soon as we can."),
     ("Call you", "Easier to talk it through. What's the best number to call you on, and when?"),
     ("Booked", "Great, you're booked in. You'll get a text the evening before with the arrival window."),
 ]

@@ -55,7 +55,7 @@ export function QuickQuote({ defaultJob = "Leak or emergency" }: { defaultJob?: 
           <div className="field">
             <label htmlFor="qq-job">What do you need?</label>
             <select id="qq-job" name="job" defaultValue={v.job ?? defaultJob}>
-              {["Leak or emergency", "Blocked drain", "Bathroom", "Kitchen", "Heating or boiler", "Something else"].map((o) => (
+              {["Leak or emergency", "Blocked drain", "Bathroom", "Kitchen", "Heating or boiler", "Gas or Local Law 152", "Something else"].map((o) => (
                 <option key={o}>{o}</option>
               ))}
             </select>

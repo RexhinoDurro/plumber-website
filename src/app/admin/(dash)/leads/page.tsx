@@ -1,10 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAdmin, useAdminEvents } from "@/components/admin/AdminShell";
 import { DemoTag, EmptyState, PageTitle } from "@/components/admin/ui";
-import { ago, api, contactLinks, errorText, STATUSES, type Lead, type LeadStatus } from "@/components/admin/client";
+import { ago, api, contactLinks, errorText, money, STATUSES, type Lead, type LeadStatus } from "@/components/admin/client";
+import { PaymentDrawer } from "@/components/admin/PaymentDrawer";
 import { site } from "@/content/site";
+
+const LIMIT = 500;
 
 const statusStyle: Record<LeadStatus, string> = {
   new: "bg-brand/10 text-brand",
@@ -23,14 +26,34 @@ export default function LeadsPage() {
   const [fresh, setFresh] = useState<Set<number>>(new Set());
   const [now, setNow] = useState(() => Date.now());
 
+  const [query, setQuery] = useState("");
+  const [serverCounts, setServerCounts] = useState<Record<string, number> | null>(null);
+  const reqId = useRef(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => setQuery(q.trim()), 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  // The server does the searching and stage filtering, so it works with any number of leads.
   const load = useCallback(() => {
-    api<Lead[]>("/api/admin/leads/")
-      .then(setLeads)
+    const id = ++reqId.current;
+    const p = new URLSearchParams({ limit: String(LIMIT) });
+    if (tab !== "all") p.set("status", tab);
+    if (query) p.set("q", query);
+    api<Lead[]>(`/api/admin/leads/?${p}`)
+      .then((l) => id === reqId.current && setLeads(l))
       .catch(() => setLeads((l) => l ?? []));
-  }, []);
+    api<Record<string, number>>(`/api/admin/leads/counts/${query ? `?q=${encodeURIComponent(query)}` : ""}`)
+      .then((c) => id === reqId.current && setServerCounts(c))
+      .catch(() => {});
+  }, [tab, query]);
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  useEffect(() => {
     const pick = () => {
       const id = Number(location.hash.slice(1));
       setOpen(Number.isFinite(id) && id > 0 ? id : null);
@@ -42,13 +65,14 @@ export default function LeadsPage() {
       window.removeEventListener("hashchange", pick);
       clearInterval(t);
     };
-  }, [load]);
+  }, []);
 
   useAdminEvents((e) => {
     if (e.type === "lead_new") {
       const l = e.lead as Lead;
       setLeads((list) => (list ? [l, ...list.filter((x) => x.id !== l.id)] : list));
       setFresh((f) => new Set(f).add(l.id));
+      setServerCounts((c) => c && { ...c, all: c.all + 1, [l.status]: (c[l.status] ?? 0) + 1 });
     }
     if (e.type === "lead_updated") {
       const l = e.lead as Lead;
@@ -56,11 +80,7 @@ export default function LeadsPage() {
     }
   });
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { all: leads?.length ?? 0 };
-    for (const l of leads ?? []) c[l.status] = (c[l.status] ?? 0) + 1;
-    return c;
-  }, [leads]);
+  const counts = serverCounts ?? {};
 
   const visible = (leads ?? []).filter((l) => {
     if (tab !== "all" && l.status !== tab) return false;
@@ -69,7 +89,16 @@ export default function LeadsPage() {
     return hay.includes(q.toLowerCase());
   });
 
-  const current = leads?.find((l) => l.id === open) ?? null;
+  // A link to an older lead (#id) that isn't in the newest page: fetch it on its own.
+  const [single, setSingle] = useState<Lead | null>(null);
+  const inList = leads?.some((l) => l.id === open) ?? false;
+  useEffect(() => {
+    if (open && leads && !inList)
+      api<Lead>(`/api/admin/leads/${open}/`)
+        .then(setSingle)
+        .catch(() => setSingle(null));
+  }, [open, leads, inList]);
+  const current = leads?.find((l) => l.id === open) ?? (single?.id === open ? single : null);
 
   const update = async (id: number, patch: Partial<Lead>, msg?: string) => {
     const before = leads;
@@ -77,8 +106,10 @@ export default function LeadsPage() {
     try {
       const l = await api<Lead>(`/api/admin/leads/${id}/`, { method: "PATCH", body: JSON.stringify(patch) });
       setLeads((list) => list?.map((x) => (x.id === id ? l : x)) ?? list);
+      setSingle((x) => (x?.id === id ? l : x));
       if (msg) toast({ title: msg, tone: "ok" });
       refreshCounts();
+      if (patch.status) api<Record<string, number>>(`/api/admin/leads/counts/${query ? `?q=${encodeURIComponent(query)}` : ""}`).then(setServerCounts).catch(() => {});
     } catch (e) {
       setLeads(before);
       toast({ title: "Couldn't save", body: errorText(e), tone: "error" });
@@ -89,6 +120,7 @@ export default function LeadsPage() {
     try {
       await api(`/api/admin/leads/${id}/`, { method: "DELETE" });
       setLeads((list) => list?.filter((x) => x.id !== id) ?? list);
+      load();
       choose(null);
       toast({ title: "Lead deleted", tone: "ok" });
       refreshCounts();
@@ -137,7 +169,7 @@ export default function LeadsPage() {
         ))}
       </div>
 
-      {leads !== null && leads.length === 0 ? (
+      {leads !== null && serverCounts?.all === 0 && !query ? (
         <EmptyState title="No leads yet" text="Quote requests from the website arrive here instantly, with a sound and a desktop alert if you turn them on." />
       ) : (
         <div className="admin-card overflow-x-auto">
@@ -189,7 +221,10 @@ export default function LeadsPage() {
                       )}
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`chip ${statusStyle[l.status]}`}>{STATUSES.find((s) => s.key === l.status)?.label}</span>
+                      <span className="flex flex-wrap items-center gap-1.5">
+                        <span className={`chip ${statusStyle[l.status]}`}>{STATUSES.find((s) => s.key === l.status)?.label}</span>
+                        {l.paid_total && <span className="chip border border-ok/40 text-ok">Paid {money(l.paid_total)}</span>}
+                      </span>
                     </td>
                   </tr>
                 );
@@ -209,7 +244,13 @@ export default function LeadsPage() {
         </div>
       )}
 
-      {current && <LeadDrawer key={current.id} lead={current} now={now} onClose={() => choose(null)} onUpdate={update} onDelete={remove} />}
+      {leads !== null && (counts[tab] ?? 0) > leads.length && (
+        <p className="text-center text-[0.9375rem] text-muted">
+          Showing the newest {leads.length} of {counts[tab]}. Search by name, phone, email or ZIP code to find older ones.
+        </p>
+      )}
+
+      {current && <LeadDrawer key={current.id} lead={current} now={now} onClose={() => choose(null)} onUpdate={update} onDelete={remove} onPaid={load} />}
     </div>
   );
 }
@@ -220,14 +261,17 @@ function LeadDrawer({
   onClose,
   onUpdate,
   onDelete,
+  onPaid,
 }: {
   lead: Lead;
   now: number;
   onClose: () => void;
   onUpdate: (id: number, patch: Partial<Lead>, msg?: string) => void;
   onDelete: (id: number) => void;
+  onPaid: () => void;
 }) {
   const [notes, setNotes] = useState(lead.notes);
+  const [paying, setPaying] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const stage = STATUSES.findIndex((s) => s.key === lead.status);
@@ -246,7 +290,7 @@ function LeadDrawer({
         tabIndex={-1}
         role="dialog"
         aria-label={`Lead: ${lead.name}`}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
+        onKeyDown={(e) => e.key === "Escape" && !paying && onClose()}
         className="drawer fixed inset-y-0 right-0 z-50 flex w-[min(460px,100vw)] flex-col bg-surface shadow-lift outline-none"
       >
         <header className="flex items-start gap-3 border-b border-line p-6">
@@ -300,9 +344,31 @@ function LeadDrawer({
 
           <dl className="mt-7 grid gap-4 text-[0.9375rem]">
             <Row label="Job" value={lead.job || "Not said"} />
-            <Row label="Area / postcode" value={lead.postcode || "Not given"} />
+            <Row label="Area / ZIP code" value={lead.postcode || "Not given"} />
             <Row label="Message" value={lead.message || "No message"} />
           </dl>
+
+          <section className="mt-7 flex flex-wrap items-center justify-between gap-3 rounded-md border border-line p-4" aria-label="Payment">
+            <div>
+              <h3 className="text-[0.75rem] font-semibold uppercase tracking-wide text-muted">Payment</h3>
+              <p className="mt-1 text-[0.9375rem]">
+                {lead.paid_total ? (
+                  <>
+                    Paid <b>{money(lead.paid_total, "USD", true)}</b> ·{" "}
+                    <a href={`/admin/customers`} className="text-water">
+                      see in Paid customers
+                    </a>
+                  </>
+                ) : (
+                  <span className="text-muted">Not paid yet</span>
+                )}
+              </p>
+            </div>
+            <button type="button" className={`btn ${lead.paid_total ? "btn-secondary" : ""} min-h-11 px-4 text-[0.9375rem]`} onClick={() => setPaying(true)}>
+              {lead.paid_total ? "Add payment" : "Record payment"}
+            </button>
+          </section>
+          {paying && <PaymentDrawer lead={lead} onClose={() => setPaying(false)} onSaved={() => (setPaying(false), onPaid())} />}
 
           {lead.status === "booked" && <ReviewRequest lead={lead} onSent={() => onUpdate(lead.id, { review_requested_at: new Date().toISOString() }, "Marked as asked for a review")} />}
 

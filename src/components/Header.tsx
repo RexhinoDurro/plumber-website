@@ -11,6 +11,7 @@ const links = [
   { href: "/emergency", label: "Emergency" },
   { href: "/gallery", label: "Our work" },
   { href: "/areas", label: "Areas" },
+  { href: "/buildings", label: "For buildings" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -79,7 +80,7 @@ export function Header() {
           </ul>
         </nav>
 
-        <Link href="/contact" className="btn btn-secondary hidden min-h-11 px-4 text-[0.95rem] lg:inline-flex">
+        <Link href="/contact" className="btn btn-secondary hidden min-h-11 px-4 text-[0.95rem] xl:inline-flex">
           Get a quote
         </Link>
         <a href={site.phoneHref} className="btn ml-auto lg:ml-0 min-h-12 md:min-h-11 w-12 px-0 md:w-auto md:px-4 text-[0.95rem]">

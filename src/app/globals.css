@@ -17,8 +17,8 @@
   --color-brand-deep: #0c47b3;
   --color-sky: #8cc0ff;
   /* Status: "online" dots and success states */
-  --color-ok: #1b8a4b;
-  --color-warn: #b25e00;
+  --color-ok: #14713d; /* 6:1 on white, 5:1 on its own 12% tint (WCAG AA) */
+  --color-warn: #9a5100; /* 5:1 on its own 12% tint (WCAG AA) */
   --color-danger: #b3261e;
   --color-on-dark: #f3f7fc;
   --color-on-dark-muted: #b8c6da;
@@ -294,11 +294,14 @@
 .switch:checked::after { transform: translateX(16px); }
 .switch-light { background: var(--color-line); }
 .admin-card { background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-hair); }
-.admin-input {
-  width: 100%; min-height: 44px; border: 1.5px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-surface);
-  padding: 9px 12px; font: 400 0.9375rem/1.4 var(--font-body); color: var(--color-ink);
+@layer components {
+  /* In a layer so utilities (pl-9, w-…) can override it. */
+  .admin-input {
+    width: 100%; min-height: 44px; border: 1.5px solid var(--color-line); border-radius: var(--radius-sm); background: var(--color-surface);
+    padding: 9px 12px; font: 400 0.9375rem/1.4 var(--font-body); color: var(--color-ink);
+  }
+  .admin-input:focus { border-color: var(--color-brand); outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-brand) 20%, transparent); }
 }
-.admin-input:focus { border-color: var(--color-brand); outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-brand) 20%, transparent); }
 .chip {
   display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 3px 10px;
   font-size: 0.75rem; font-weight: 600; line-height: 1.4; white-space: nowrap;

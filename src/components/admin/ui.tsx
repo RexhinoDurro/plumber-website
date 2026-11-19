@@ -31,7 +31,7 @@ export function Panel({ title, sub, action, children, className = "" }: { title:
   );
 }
 
-/** Change against last period, with an arrow and words (never colour alone). */
+/** Change against last period, with an arrow and words (never color alone). */
 export function Delta({ now, prev, lowerIsBetter, label }: { now: number; prev: number; lowerIsBetter?: boolean; label?: string }) {
   if (!prev && !now) return <p className="text-[0.8125rem] text-muted">{label ?? "no data last week"}</p>;
   const diff = now - prev;
@@ -80,7 +80,7 @@ export function DemoBanner({ count, onCleared }: { count: number; onCleared?: ()
     <div role="note" className="flex flex-wrap items-center gap-3 rounded-md border-[1.5px] border-dashed border-warn/50 bg-[#fff7ea] px-5 py-3 text-[0.9375rem]">
       <span className="chip bg-warn text-white">Demo</span>
       <p className="flex-1 text-[#5c3a00]">
-        {count} sample leads, chats and reviews are mixed in so you can try things out. They never appear on the website.
+        {count} sample leads, chats, payments and reviews are mixed in so you can try things out. They never appear on the website.
       </p>
       {confirm ? (
         <span className="flex items-center gap-2">

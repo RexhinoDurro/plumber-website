@@ -24,6 +24,8 @@ export function Footer() {
           <li><Link href="/emergency">Emergency help</Link></li>
           <li><Link href="/gallery">Our work</Link></li>
           <li><Link href="/areas">Areas we cover</Link></li>
+          <li><Link href="/buildings">For building managers</Link></li>
+          <li><Link href="/accessibility">Accessibility</Link></li>
           <li><Link href="/about">About</Link></li>
           <li><Link href="/contact">Get a quote</Link></li>
         </FooterCol>

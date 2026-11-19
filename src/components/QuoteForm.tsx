@@ -45,14 +45,14 @@ export function QuoteForm() {
         <Field id="email" label="Email" hint="Optional">
           <input id="email" name="email" type="email" autoComplete="email" defaultValue={v.email} />
         </Field>
-        <Field id="postcode" label="Postcode or area" hint="So we know how far we're travelling">
+        <Field id="postcode" label="ZIP code or area" hint="So we know how far we're traveling">
           <input id="postcode" name="postcode" autoComplete="postal-code" defaultValue={v.postcode} />
         </Field>
       </div>
 
       <Field id="job" label="What kind of job?">
         <select id="job" name="job" defaultValue={v.job ?? "Not sure"}>
-          {["Leak or emergency", "Blocked drain", "Bathroom", "Kitchen", "Heating or boiler", "New pipework", "Not sure"].map((o) => (
+          {["Leak or emergency", "Blocked drain", "Bathroom", "Kitchen", "Heating or boiler", "Gas or Local Law 152", "New pipework", "Not sure"].map((o) => (
             <option key={o}>{o}</option>
           ))}
         </select>

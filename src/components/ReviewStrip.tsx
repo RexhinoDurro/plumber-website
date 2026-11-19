@@ -17,7 +17,7 @@ export async function ReviewStrip() {
           <Rating />
           <span>
             <b className="text-ink">{first.name}</b> · {first.job} ·{" "}
-            <a href={first.sourceUrl ?? site.reviewsUrl} className="text-water">
+            <a href={first.sourceUrl ?? site.reviewsUrl} className="text-water underline underline-offset-4">
               {first.source} review
             </a>
           </span>

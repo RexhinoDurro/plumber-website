@@ -15,6 +15,7 @@ router = DefaultRouter()
 router.register("conversations", chat.ConversationAdminViewSet, basename="conversation")
 router.register("quick-replies", chat.QuickReplyViewSet, basename="quickreply")
 router.register("leads", leads.LeadAdminViewSet, basename="lead")
+router.register("payments", leads.PaymentViewSet, basename="payment")
 router.register("gallery", gallery.MediaAdminViewSet, basename="media")
 router.register("reviews", reviews.ReviewAdminViewSet, basename="review")
 

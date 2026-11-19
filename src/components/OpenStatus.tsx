@@ -9,6 +9,12 @@ const toMin = (t: string) => {
   return h * 60 + m;
 };
 
+/** "18:00" → "6 PM", "07:30" → "7:30 AM" (US style). */
+const clock = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""} ${h < 12 ? "AM" : "PM"}`;
+};
+
 /** Current day/minute in the business's time zone (not the visitor's). */
 function nowInZone() {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -26,14 +32,14 @@ function statusText(): { open: boolean; text: string } {
   const { day, min } = nowInZone();
   const today = site.openingHours.find((h) => h.day === day);
   if (today && min >= toMin(today.open) && min < toMin(today.close)) {
-    return { open: true, text: `Open now · until ${today.close}` };
+    return { open: true, text: `Open now · until ${clock(today.close)}` };
   }
   for (let i = 0; i < 7; i++) {
     const d = (day + i) % 7;
     const h = site.openingHours.find((x) => x.day === d);
     if (!h) continue;
     if (i === 0 && min >= toMin(h.open)) continue;
-    const when = i === 0 ? `today ${h.open}` : i === 1 ? `tomorrow ${h.open}` : `${DAYS[d]} ${h.open}`;
+    const when = i === 0 ? `today ${clock(h.open)}` : i === 1 ? `tomorrow ${clock(h.open)}` : `${DAYS[d]} ${clock(h.open)}`;
     return { open: false, text: `Office opens ${when}` };
   }
   return { open: false, text: "Office closed" };

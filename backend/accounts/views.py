@@ -13,7 +13,7 @@ from rest_framework.throttling import AnonRateThrottle
 
 from chat.models import Conversation, Message
 from gallery.models import MediaItem
-from leads.models import Lead
+from leads.models import Lead, Payment
 from reviews.models import Review
 
 
@@ -137,7 +137,7 @@ def stats(request):
             "chat_reply_seconds_prev": _chat_reply_seconds(two_weeks_ago, week_ago),
             "heatmap": heatmap(now),
             "insights": insights(now),
-            "demo_records": Lead.objects.filter(demo=True).count() + Conversation.objects.filter(demo=True).count() + Review.objects.filter(demo=True).count(),
+            "demo_records": Payment.objects.filter(demo=True).count() + Lead.objects.filter(demo=True).count() + Conversation.objects.filter(demo=True).count() + Review.objects.filter(demo=True).count(),
         }
     )
 

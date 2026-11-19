@@ -47,6 +47,7 @@ const nav = [
   { href: "/admin", label: "Overview", icon: "M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z" },
   { href: "/admin/inbox", label: "Inbox", icon: "M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6a.5.5 0 0 1-.8-.4V16a2.5 2.5 0 0 1-1-2Z" },
   { href: "/admin/leads", label: "Leads", icon: "M4 6h16M4 12h10M4 18h6" },
+  { href: "/admin/customers", label: "Paid customers", icon: "M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3S9.5 10 12 10.5s4.5 1.4 4.5 3.3-2 3.2-4.5 3.2-4.5-1.4-4.5-3.2" },
   { href: "/admin/gallery", label: "Gallery", icon: "M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5Zm0 9 4.5-4.5 4 4 2.5-2.5 5 5M15 9.5h.01" },
   { href: "/admin/reviews", label: "Reviews", icon: "M12 4l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 16.4 7.2 18.9l.9-5.4-3.9-3.8 5.4-.8Z" },
 ];

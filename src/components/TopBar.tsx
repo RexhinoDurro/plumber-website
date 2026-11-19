@@ -11,10 +11,21 @@ export function TopBar() {
           <span>
             Emergency line 24/7:{" "}
             <a href={site.phoneHref} className="font-semibold text-on-dark no-underline hover:underline">{site.phone}</a>
+            <span className="hidden md:inline">
+              {" "}· <a href={site.smsHref} className="text-on-dark underline decoration-on-dark/30 underline-offset-4">Text us</a>
+            </span>
           </span>
         </p>
-        <p className="hidden sm:block">
-          {site.licence} · Fully insured · Serving {site.city}
+        <p className="hidden items-center gap-x-1.5 sm:flex">
+          <a href={site.licenseLookupUrl} className="text-on-dark-muted underline decoration-on-dark/30 underline-offset-4 hover:text-on-dark">
+            {site.licence}
+          </a>
+          <span aria-hidden="true">·</span> Fully insured
+          {site.languages.length > 1 && (
+            <>
+              <span aria-hidden="true">·</span> We speak {site.languages.join(", ")}
+            </>
+          )}
         </p>
       </div>
     </div>

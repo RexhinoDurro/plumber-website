@@ -40,7 +40,7 @@ export default function LoginPage() {
           <span className="font-display text-lg font-bold [font-stretch:110%]">{site.name}</span>
         </div>
         <div className="grid max-w-md gap-4">
-          <h1 className="text-[clamp(2.2rem,3vw+1rem,3.4rem)] text-on-dark">Every enquiry, answered fast.</h1>
+          <h1 className="text-[clamp(2.2rem,3vw+1rem,3.4rem)] text-on-dark">Every request, answered fast.</h1>
           <p className="text-on-dark-muted">
             Live chats, quote requests, your gallery and reviews, in one place. Leave this open and visitors see you&apos;re online.
           </p>

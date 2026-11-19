@@ -32,10 +32,12 @@ The website still works if the backend is down: the gallery and reviews fall bac
 - **Chat (works like WhatsApp):** visitors press "Message us" and just type: no form. Messages, photos, "typing…", ✓ sent / ✓✓ delivered / blue ✓✓ read, and "online" / "last seen today at 07:12" on both sides. Phone numbers or emails typed in the chat are saved as the customer's contact automatically; staff can add the name. Both sides type freely on the keyboard (Enter sends on a computer; on a phone Enter adds a line and you tap Send). Saved replies open with the ⚡ button or by typing "/" and land in the box so you can edit them first. "Add to leads" keeps the transcript. Chats survive page reloads and reconnect on their own.
 - **Nobody left hanging:** after a visitor's first message the chat asks (inside the chat, never as a form) where to reply if they close the page: WhatsApp, text or email. Replies they haven't seen are sent there after 90 seconds with a link that reopens the chat. If nobody answers within 60 seconds, an automatic holding reply goes out (it doesn't count towards your reply-time stats).
 - **Phone alerts:** the dashboard installs as an app (Add to Home Screen) and sends push notifications for new chats and requests, even when it's closed. Turn on "Push alerts" in the sidebar (or at the bottom of the page on a phone).
-- **Leads:** every quote request arrives instantly (sound, toast, tab count, optional desktop alert). Stages New → Contacted → Quoted → Booked / Lost, waiting timers, notes, search.
+- **Leads:** every quote request arrives instantly (sound, toast, tab count, optional desktop alert). Stages New → Contacted → Quoted → Booked / Lost, waiting timers, notes, search. Search and stage counts run on the server, so they cover every lead, not just the newest 500.
+- **Paid customers:** everyone who paid you, with phone, email, address, the service, amount, method (card, Zelle, check, cash, bank transfer) and invoice number. Record a payment from a lead's panel (contact details fill in, the lead moves to Booked) or on its own for walk-ins. Totals this month vs last, paid per month, by service, search, filters, paging, CSV export for your accountant.
 - **Gallery:** drag-and-drop photo/video upload with progress. A description is required (for Google and screen readers). Publish/hide, pick home-page photos, and drag to reorder. Changes show on `/gallery` straight away.
 - **Overview insights:** plain-language tips next to the chart (after-hours requests, busiest times, chat reply speed against a 1-minute goal, requests waiting over a day) and a "when requests come in" grid by day and hour.
 - **Review requests:** when a lead is Booked, its panel offers a ready-to-edit Google review request: send it in the chat, or open WhatsApp, Messages or email with it filled in.
+- **For New York:** ZIP code / neighborhood → borough checker, "Text us" everywhere, gas-leak safety advice (911 / Con Edison / National Grid), no-heat and leak-from-upstairs help, a page for building managers with a COI request form, Local Law 152 gas inspections, license lookup link, US time and money formats, no hero video on data-saver or slow connections, and an accessibility statement (WCAG 2.2 AA; NY is where most website accessibility lawsuits are filed).
 - **Reviews:** add real reviews; publishing needs the customer's consent. The 3 newest replace the home-page placeholders.
 
 ### Environment variables
@@ -48,6 +50,10 @@ The website still works if the backend is down: the gallery and reviews fall bac
 | Backend | `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=0`, `DJANGO_ALLOWED_HOSTS` | Required in production |
 | Backend | `CORS_ALLOWED_ORIGINS` | The website's origin(s), comma-separated. WebSockets accept the same origins |
 | Backend | `PUBLIC_API_URL` | The backend's own public URL (used in media links) |
+| Backend | `DATABASE_URL` | **Production: a Postgres database** (e.g. Railway Postgres). Real customers, payments and chats live here; without it the backend uses a local SQLite file |
+| Backend | `DB_CONN_MAX_AGE` (0) | Keep DB connections open between requests. Leave at 0 under daphne unless you use a pooler |
+| Backend | `CURRENCY` (USD) | Currency for the Paid customers page |
+| Backend | `PUBLIC_POST_RATE` (20/hour) | Spam limit: form posts and chat starts per visitor |
 | Backend | `REDIS_URL` | Needed in production for live chat across processes (in-memory is for local use) |
 | Backend | `INTERNAL_API_KEY` | Shared secret with the website |
 | Backend | `SITE_URL`, `BUSINESS_NAME`, `BUSINESS_PHONE` | Used in automatic replies and the "continue the chat" link |
@@ -61,8 +67,13 @@ See `.env.example` and `backend/.env.example`.
 ### Tests
 
 ```bash
-cd backend && python -m pytest          # API + WebSocket chat tests
-python e2e/flow.py                       # full browser test; both servers must be running
+cd backend && python -m pytest          # API + WebSocket chat tests (add DATABASE_URL=postgres://… to run them on Postgres)
+python e2e/flow.py                       # browser test of chat + dashboard, on a database seeded with --demo
+python e2e/real_data.py                  # browser test on an EMPTY database: every form + chat -> dashboard,
+                                         #   record / search / filter / edit / export / delete payments
+python manage.py shell < ../e2e/reset_e2e.py   # (in backend/) removes the "E2E …" records so it can run again
+KEEP=1 python manage.py shell < ../e2e/volume.py && python e2e/volume_ui.py   # 20,000 leads + 15,000 payments
+python e2e/axe_scan.py                   # WCAG 2.2 AA scan (axe-core) of the main pages and the dashboard
 ```
 
 ## Before going live: replace the placeholders
@@ -78,7 +89,7 @@ Everything business-specific is in **`src/content/`**:
 
 Search the code for `TODO` and `[` to find every placeholder.
 
-The quote forms (`src/app/(site)/contact/actions.ts`) send requests to the backend, where they appear in the dashboard under Leads. Gallery photos and reviews are managed from the dashboard; `media.ts` and `testimonials` in `site.ts` are only the fallback when the backend can't be reached.
+Every form on the site goes to the backend: the contact form, the quick quote on each service page, and the certificate of insurance (COI) request on `/buildings`. All three are in `src/app/(site)/contact/actions.ts`, and each request appears in the dashboard under Leads, where they appear in the dashboard under Leads. Gallery photos and reviews are managed from the dashboard; `media.ts` and `testimonials` in `site.ts` are only the fallback when the backend can't be reached.
 
 ## SEO
 

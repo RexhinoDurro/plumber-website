@@ -31,9 +31,9 @@ export function EmergencyCta() {
         </div>
         <ol className="grid rounded-md bg-ink/25 p-6 md:p-8" aria-label="While you wait">
           {[
-            ["Turn off the water", "The stopcock is usually under the kitchen sink. Turn it clockwise."],
-            ["Switch off nearby electrics", "If water is near sockets or lights, turn them off at the fuse box."],
-            ["Catch it and take a photo", "Buckets and towels down. A photo helps us bring the right parts."],
+            ["Turn off the water", "The main shut-off valve is usually by the water meter or under the kitchen sink. Turn it clockwise. In an apartment, call the super too."],
+            ["Switch off nearby electrics", "If water is near outlets or light fixtures, turn them off at the breaker panel."],
+            ["Tell your super, take a photo", "In an apartment the leak may be from above. A photo helps us bring the right parts."],
           ].map(([b, s], i) => (
             <li key={b} className="grid grid-cols-[36px_1fr] gap-3 border-t border-white/20 py-4 first:border-0 first:pt-0 last:pb-0">
               <span className="font-display text-2xl font-extrabold leading-none text-sky [font-stretch:125%]">{i + 1}</span>
@@ -44,6 +44,10 @@ export function EmergencyCta() {
             </li>
           ))}
         </ol>
+        <p className="text-[0.95rem] text-white/85 lg:col-span-2">
+          <b>Smell gas?</b> Don&apos;t use switches or flames. Leave the building, then call 911 or Con Edison (1-800-75-CONED) / National Grid
+          (718-643-4050) from outside.
+        </p>
       </div>
     </section>
   );
