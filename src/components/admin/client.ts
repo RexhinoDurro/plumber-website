@@ -88,6 +88,8 @@ export type Conversation = {
   display_name: string;
   visitor_online: boolean;
   visitor_last_seen: string | null;
+  contact_via: "" | "sms" | "whatsapp" | "email";
+  last_notified_at: string | null;
   visitor_contact: string;
   page_url: string;
   status: "open" | "closed";
@@ -114,6 +116,8 @@ export type Lead = {
   status: LeadStatus;
   notes: string;
   first_contacted_at: string | null;
+  review_requested_at: string | null;
+  conversation: string | null;
   created_at: string;
   updated_at: string;
   demo: boolean;
@@ -165,3 +169,18 @@ export function ago(iso: string, now = Date.now()): string {
   if (s < 86400) return `${Math.floor(s / 3600)} h`;
   return `${Math.floor(s / 86400)} d`;
 }
+
+/** Links that open the phone's own apps, so no SMS/WhatsApp account is needed. */
+export const contactLinks = (contact: string, text = "") => {
+  const digits = contact.replace(/[^\d+]/g, "");
+  const isEmail = contact.includes("@");
+  const enc = encodeURIComponent(text);
+  return {
+    isEmail,
+    isPhone: !isEmail && digits.replace(/\D/g, "").length >= 7,
+    call: `tel:${digits}`,
+    sms: `sms:${digits}${text ? `?&body=${enc}` : ""}`,
+    whatsapp: `https://wa.me/${digits.replace(/\D/g, "")}${text ? `?text=${enc}` : ""}`,
+    email: `mailto:${contact}${text ? `?body=${enc}` : ""}`,
+  };
+};

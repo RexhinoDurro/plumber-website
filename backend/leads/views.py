@@ -26,6 +26,9 @@ def create_lead(request):
         return Response({"ok": True}, status=status.HTTP_201_CREATED)  # honeypot: pretend success
     lead = s.save()
     push(ADMINS, {"type": "lead_new", "lead": _payload(lead)})
+    from accounts.push import notify_staff
+
+    notify_staff(f"New {'urgent ' if lead.urgent else ''}request from {lead.name}", lead.job or lead.message, f"/admin/leads#{lead.id}", f"lead-{lead.id}")
     return Response({"ok": True, "id": lead.id}, status=status.HTTP_201_CREATED)
 
 

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdmin, useAdminEvents } from "@/components/admin/AdminShell";
 import { DemoTag, EmptyState, PageTitle } from "@/components/admin/ui";
-import { ago, api, errorText, STATUSES, type Lead, type LeadStatus } from "@/components/admin/client";
+import { ago, api, contactLinks, errorText, STATUSES, type Lead, type LeadStatus } from "@/components/admin/client";
+import { site } from "@/content/site";
 
 const statusStyle: Record<LeadStatus, string> = {
   new: "bg-brand/10 text-brand",
@@ -303,6 +304,8 @@ function LeadDrawer({
             <Row label="Message" value={lead.message || "No message"} />
           </dl>
 
+          {lead.status === "booked" && <ReviewRequest lead={lead} onSent={() => onUpdate(lead.id, { review_requested_at: new Date().toISOString() }, "Marked as asked for a review")} />}
+
           <label className="mt-7 grid gap-2">
             <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-muted">Notes</span>
             <textarea
@@ -344,5 +347,64 @@ function Row({ label, value }: { label: string; value: string }) {
       <dt className="text-[0.75rem] font-semibold uppercase tracking-wide text-muted">{label}</dt>
       <dd className="mt-1 whitespace-pre-wrap">{value}</dd>
     </div>
+  );
+}
+
+/**
+ * After a booked job: ask for a Google review. Sends through the chat when there is one,
+ * otherwise opens the phone's own SMS / WhatsApp / email app with the message ready.
+ */
+function ReviewRequest({ lead, onSent }: { lead: Lead; onSent: () => void }) {
+  const { send, toast } = useAdmin();
+  const first = lead.name.split(" ")[0];
+  const [text, setText] = useState(
+    `Hi ${first}, thanks for choosing ${site.name}. If you were happy with the job, a quick Google review would really help us: ${site.reviewsUrl}`,
+  );
+  const contact = lead.phone || lead.email;
+  const links = contact ? contactLinks(contact, text) : null;
+  const done = Boolean(lead.review_requested_at);
+
+  const viaChat = () => {
+    if (!lead.conversation) return;
+    send({ type: "message", conversation: lead.conversation, body: text });
+    toast({ title: "Review request sent in the chat", tone: "ok" });
+    onSent();
+  };
+
+  return (
+    <section className="mt-7 grid gap-3 rounded-md border-[1.5px] border-ok/40 bg-ok/5 p-4" aria-labelledby="review-req">
+      <div className="flex items-center justify-between gap-3">
+        <h3 id="review-req" className="font-semibold">Ask for a Google review</h3>
+        {done && <span className="chip bg-ok/15 text-ok">Asked {ago(lead.review_requested_at!)} ago</span>}
+      </div>
+      <p className="text-[0.875rem] text-muted">Customers are most likely to leave one within a day of the job. Edit the message if you like.</p>
+      <label className="sr-only" htmlFor="review-text">
+        Message
+      </label>
+      <textarea id="review-text" rows={4} value={text} onChange={(e) => setText(e.target.value)} className="admin-input resize-y text-[0.875rem]" />
+      <div className="flex flex-wrap gap-2">
+        {lead.conversation && (
+          <button type="button" className="btn min-h-10 px-4 text-[0.875rem]" onClick={viaChat}>
+            Send in the chat
+          </button>
+        )}
+        {links?.isPhone && (
+          <>
+            <a href={contactLinks(lead.phone, text).whatsapp} target="_blank" rel="noopener" onClick={onSent} className="btn btn-secondary min-h-10 px-4 text-[0.875rem]">
+              WhatsApp
+            </a>
+            <a href={contactLinks(lead.phone, text).sms} onClick={onSent} className="btn btn-secondary min-h-10 px-4 text-[0.875rem]">
+              Text
+            </a>
+          </>
+        )}
+        {lead.email && (
+          <a href={`mailto:${lead.email}?subject=${encodeURIComponent(`Thank you from ${site.name}`)}&body=${encodeURIComponent(text)}`} onClick={onSent} className="btn btn-secondary min-h-10 px-4 text-[0.875rem]">
+            Email
+          </a>
+        )}
+        {!contact && !lead.conversation && <span className="text-[0.875rem] text-muted">Add a phone or email to send it.</span>}
+      </div>
+    </section>
   );
 }

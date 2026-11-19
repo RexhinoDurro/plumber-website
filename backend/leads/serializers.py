@@ -28,11 +28,16 @@ class LeadPublicSerializer(serializers.ModelSerializer):
 
 class LeadAdminSerializer(serializers.ModelSerializer):
     source_label = serializers.CharField(source="get_source_display", read_only=True)
+    conversation = serializers.SerializerMethodField()
+
+    def get_conversation(self, lead):
+        c = lead.conversations.first()
+        return str(c.id) if c else None
 
     class Meta:
         model = Lead
         fields = [
             "id", "name", "phone", "email", "postcode", "job", "message", "urgent", "source", "source_label",
-            "status", "notes", "first_contacted_at", "created_at", "updated_at", "demo",
+            "status", "notes", "first_contacted_at", "review_requested_at", "conversation", "created_at", "updated_at", "demo",
         ]
         read_only_fields = ["first_contacted_at", "created_at", "updated_at", "source", "demo"]

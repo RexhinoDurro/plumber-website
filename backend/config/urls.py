@@ -29,12 +29,16 @@ urlpatterns = [
     path("api/chat/start/", chat.start_chat),
     path("api/chat/<uuid:pk>/messages/", chat.visitor_messages),
     path("api/chat/<uuid:pk>/photo/", chat.visitor_photo),
+    path("api/chat/<uuid:pk>/contact/", chat.visitor_contact),
     # Staff (dashboard)
     path("api/auth/login/", accounts.login),
     path("api/auth/logout/", accounts.logout),
     path("api/auth/me/", accounts.me),
     path("api/admin/stats/", accounts.stats),
     path("api/admin/demo/clear/", accounts.clear_demo),
+    path("api/admin/followup/", chat.followup_status),
+    path("api/admin/push/key/", accounts.push_key),
+    path("api/admin/push/subscribe/", accounts.push_subscribe),
     path("api/admin/", include(router.urls)),
 ]
 

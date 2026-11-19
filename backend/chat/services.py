@@ -43,7 +43,7 @@ def _learn_contact(conversation: Conversation, body: str) -> None:
         conversation.save(update_fields=["visitor_contact"])
 
 
-def add_message(conversation: Conversation, sender: str, body: str = "", client_id: str = "", attachment=None) -> Message:
+def add_message(conversation: Conversation, sender: str, body: str = "", client_id: str = "", attachment=None, auto: bool = False) -> Message:
     body = (body or "").strip()[:2000]
     now = timezone.now()
     other_online = presence.admins_online() > 0 if sender == Message.Sender.VISITOR else presence.visitor_online(conversation.id)
@@ -53,6 +53,7 @@ def add_message(conversation: Conversation, sender: str, body: str = "", client_
         body=body,
         client_id=(client_id or "")[:40],
         attachment=attachment or "",
+        auto=auto,
         delivered_at=now if other_online else None,
     )
     updates = {"last_message_at": now}
@@ -61,7 +62,7 @@ def add_message(conversation: Conversation, sender: str, body: str = "", client_
         updates["status"] = Conversation.Status.OPEN
     else:
         updates["unread_for_visitor"] = F("unread_for_visitor") + 1
-        if conversation.first_admin_reply_at is None:
+        if conversation.first_admin_reply_at is None and not auto:
             updates["first_admin_reply_at"] = now
     Conversation.objects.filter(pk=conversation.pk).update(**updates)
     conversation.refresh_from_db()
@@ -72,6 +73,16 @@ def add_message(conversation: Conversation, sender: str, body: str = "", client_
     push(conv_group(conversation.id), event)
     push(ADMINS, event)
     push(ADMINS, {"type": "conversation", "conversation": conversation_payload(conversation)})
+
+    from . import followup
+
+    if sender == Message.Sender.VISITOR:
+        followup.schedule_auto_reply(conversation.id, msg.id)
+        from accounts.push import notify_staff
+
+        notify_staff(f"New message from {conversation.display_name}", body or "📷 Photo", f"/admin/inbox#{conversation.id}", str(conversation.id))
+    elif not auto and not other_online:
+        followup.schedule_offline_notify(conversation.id, msg.id)
     return msg
 
 

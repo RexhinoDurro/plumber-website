@@ -62,6 +62,7 @@ export function ChatWidget() {
   const [draft, setDraft] = useState("");
   const [notice, setNotice] = useState("");
   const [viewing, setViewing] = useState<string | null>(null);
+  const [contact, setContact] = useState<{ value: string; via: string }>({ value: "", via: "" });
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -76,9 +77,17 @@ export function ChatWidget() {
     openRef.current = open;
   }, [open]);
 
-  // Restore an earlier conversation, or just ask whether anyone is in.
+  // Restore an earlier conversation (or one opened from the link in an email/text), or just ask whether anyone is in.
   useEffect(() => {
-    const s = readSession();
+    const params = new URLSearchParams(location.search);
+    const fromLink = params.get("chat") && params.get("t") ? { id: params.get("chat")!, token: params.get("t")! } : null;
+    if (fromLink) {
+      writeSession(fromLink);
+      params.delete("chat");
+      params.delete("t");
+      history.replaceState(null, "", location.pathname + (params.size ? `?${params}` : "") + location.hash);
+    }
+    const s = fromLink ?? readSession();
     const ctrl = new AbortController();
     const url = s ? `${API_URL}/api/chat/${s.id}/messages/?token=${encodeURIComponent(s.token)}` : `${API_URL}/api/chat/presence/`;
     fetch(url, { signal: ctrl.signal })
@@ -89,6 +98,8 @@ export function ChatWidget() {
           setSession(s);
           setMessages(d.messages);
           setClosed(d.status === "closed");
+          setContact({ value: d.contact ?? "", via: d.contact_via ?? "" });
+          if (fromLink) setOpen(true);
         }
       })
       .catch((e) => {
@@ -108,6 +119,7 @@ export function ChatWidget() {
         setMessages((list) => [...server, ...list.filter((m) => m.pending && !server.some((x) => x.client_id === m.client_id))]);
         setClosed(d.status === "closed");
         setBiz({ online: d.online, last_seen: d.last_seen });
+        setContact({ value: d.contact ?? "", via: d.contact_via ?? "" });
       })
       .catch(() => {});
   }, [session]);
@@ -364,12 +376,19 @@ export function ChatWidget() {
           <Thread messages={messages} me="visitor" theirName={site.name} onImage={setViewing} />
           {hasVisitorMsg && !hasReply && biz && !biz.online && (
             <p className="mx-auto my-3 max-w-[300px] rounded-md bg-surface/90 px-3 py-2 text-center text-[0.8125rem] leading-snug text-muted shadow-hair">
-              We&apos;re out on a job right now. Leave your number and we&apos;ll call you back. For a leak or burst pipe, call{" "}
+              We&apos;re out on a job right now. Leak or burst pipe? Call{" "}
               <a href={tel} className="font-semibold text-water">
                 {site.phone}
               </a>
               .
             </p>
+          )}
+          {session && hasVisitorMsg && (
+            <ContactCard
+              session={session}
+              contact={contact}
+              onSaved={(c) => setContact(c)}
+            />
           )}
           {closed && session && <p className="my-3 text-center text-[0.75rem] text-muted">This chat was closed. Send a message to start again.</p>}
           {typing && <TypingBubble label={`${site.name} is typing`} />}
@@ -386,5 +405,122 @@ export function ChatWidget() {
       </div>
       <PhotoViewer src={viewing} onClose={() => setViewing(null)} />
     </>
+  );
+}
+
+const VIA = [
+  { id: "whatsapp", label: "WhatsApp", placeholder: "+36 30 123 4567", type: "tel" },
+  { id: "sms", label: "Text", placeholder: "+36 30 123 4567", type: "tel" },
+  { id: "email", label: "Email", placeholder: "you@example.com", type: "email" },
+] as const;
+
+/**
+ * Asked inside the chat, never as a form up front: where should the reply go if they close the page?
+ * Once given, it shrinks to a one-line confirmation they can change.
+ */
+function ContactCard({
+  session,
+  contact,
+  onSaved,
+}: {
+  session: { id: string; token: string };
+  contact: { value: string; via: string };
+  onSaved: (c: { value: string; via: string }) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [via, setVia] = useState<(typeof VIA)[number]["id"]>((contact.via as "whatsapp") || "whatsapp");
+  const [value, setValue] = useState(contact.via ? contact.value : "");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const opt = VIA.find((v) => v.id === via)!;
+
+  if (contact.via && contact.value && !editing) {
+    const label = VIA.find((v) => v.id === contact.via)?.label ?? "message";
+    return (
+      <p className="mx-auto my-3 flex max-w-[320px] flex-wrap items-center justify-center gap-x-1.5 rounded-md bg-surface/90 px-3 py-2 text-center text-[0.8125rem] text-muted shadow-hair">
+        <span className="text-ok" aria-hidden="true">✓</span>
+        If you leave, we&apos;ll reply by {label.toLowerCase() === "text" ? "text" : label} to <b className="text-ink">{contact.value}</b>.
+        <button type="button" onClick={() => setEditing(true)} className="cursor-pointer font-semibold text-water underline underline-offset-2">
+          Change
+        </button>
+      </p>
+    );
+  }
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const r = await fetch(`${API_URL}/api/chat/${session.id}/contact/?token=${encodeURIComponent(session.token)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ via, value }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.value?.[0] ?? d?.non_field_errors?.[0] ?? "Check that and try again.");
+      onSaved({ value: d.contact, via: d.contact_via });
+      setEditing(false);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="chat-bubble mt-2.5 flex">
+      <form
+        onSubmit={save}
+        className="bubble-tail-in grid w-[min(300px,88%)] gap-2.5 rounded-[10px] rounded-tl-[2px] bg-surface p-3 text-[0.9375rem] shadow-[0_1px_0.5px_rgb(10_26_51/0.13)]"
+        aria-label="Where should we reply if you leave?"
+      >
+        <p className="m-0 leading-snug">
+          <b>Where should we reply if you close this page?</b>
+          <span className="block text-[0.8125rem] text-muted">Optional. We only use it for this job.</span>
+        </p>
+        <div className="grid grid-cols-3 gap-1 rounded-full bg-bg p-1" role="radiogroup" aria-label="Reply by">
+          {VIA.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              role="radio"
+              aria-checked={via === v.id}
+              onClick={() => {
+                setVia(v.id);
+                setError("");
+              }}
+              className="min-h-9 cursor-pointer rounded-full text-[0.8125rem] font-semibold text-muted aria-checked:bg-surface aria-checked:text-ink aria-checked:shadow-hair"
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+        <label className="sr-only" htmlFor="chat-contact">
+          {via === "email" ? "Your email" : "Your phone number"}
+        </label>
+        <div className="flex gap-1.5">
+          <input
+            id="chat-contact"
+            type={opt.type}
+            inputMode={opt.type === "tel" ? "tel" : "email"}
+            autoComplete={opt.type === "tel" ? "tel" : "email"}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={opt.placeholder}
+            className="chat-input min-w-0 flex-1"
+            required
+          />
+          <button type="submit" className="btn min-h-11 px-4 text-[0.875rem]" disabled={busy || !value.trim()}>
+            {busy ? "…" : "Save"}
+          </button>
+        </div>
+        {error && (
+          <p role="alert" className="m-0 text-[0.8125rem] font-medium text-danger">
+            {error}
+          </p>
+        )}
+      </form>
+    </div>
   );
 }

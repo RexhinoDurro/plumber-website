@@ -65,7 +65,7 @@ def waiting_items(now):
         for l in Lead.objects.filter(status=Lead.Status.NEW)[:200]
     ]
     for c in Conversation.objects.filter(status=Conversation.Status.OPEN).prefetch_related("messages")[:200]:
-        msgs = list(c.messages.all())
+        msgs = [m for m in c.messages.all() if not m.auto]
         if msgs and msgs[-1].sender == Message.Sender.VISITOR:
             # waiting since the first visitor message after the last admin reply
             since = msgs[-1].created_at
@@ -133,9 +133,93 @@ def stats(request):
             "by_source": {r["source"]: r["n"] for r in Lead.objects.values("source").annotate(n=Count("id")).order_by()},
             "days": days,
             "activity": activity[:10],
+            "chat_reply_seconds": _chat_reply_seconds(week_ago, now),
+            "chat_reply_seconds_prev": _chat_reply_seconds(two_weeks_ago, week_ago),
+            "heatmap": heatmap(now),
+            "insights": insights(now),
             "demo_records": Lead.objects.filter(demo=True).count() + Conversation.objects.filter(demo=True).count() + Review.objects.filter(demo=True).count(),
         }
     )
+
+
+DAYS = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"]
+
+
+def _request_times(since):
+    """When customers got in touch: form requests + chats (chat leads are already counted as chats)."""
+    lead_times = Lead.objects.filter(created_at__gte=since).exclude(source=Lead.Source.CHAT).values_list("created_at", flat=True)
+    chat_times = Conversation.objects.filter(created_at__gte=since).values_list("created_at", flat=True)
+    return [timezone.localtime(t) for t in list(lead_times) + list(chat_times)]
+
+
+def _chat_reply_seconds(since, until):
+    """Median seconds from a visitor's first message to the first real (not automatic) staff reply."""
+    secs = []
+    for c in Conversation.objects.filter(created_at__gte=since, created_at__lt=until).prefetch_related("messages"):
+        msgs = list(c.messages.all())
+        first_v = next((m for m in msgs if m.sender == Message.Sender.VISITOR), None)
+        first_a = next((m for m in msgs if m.sender == Message.Sender.ADMIN and not m.auto and first_v and m.created_at >= first_v.created_at), None)
+        if first_v and first_a:
+            secs.append((first_a.created_at - first_v.created_at).total_seconds())
+    if not secs:
+        return None
+    secs.sort()
+    mid = len(secs) // 2
+    return round(secs[mid] if len(secs) % 2 else (secs[mid - 1] + secs[mid]) / 2)
+
+
+def _after_hours(t):
+    # Matches the default opening hours on the website; adjust with your real hours.
+    wd, h = t.weekday(), t.hour + t.minute / 60
+    if wd == 6:
+        return True
+    if wd == 5:
+        return not (8 <= h < 14)
+    return not (7.5 <= h < 18)
+
+
+def _fmt_secs(s):
+    return f"{s} s" if s < 90 else f"{round(s / 60)} min"
+
+
+def insights(now):
+    """Two or three plain-language suggestions worked out from the numbers."""
+    out = []
+    month = _request_times(now - timedelta(days=30))
+    if month:
+        late = sum(1 for t in month if _after_hours(t))
+        if late:
+            out.append(
+                {
+                    "tone": "warn" if late / len(month) >= 0.3 else "info",
+                    "text": f"{late} of {len(month)} requests in the last 30 days came outside working hours. Turn on phone alerts so they still get a fast answer.",
+                }
+            )
+    quarter = _request_times(now - timedelta(days=90))
+    if len(quarter) >= 5:
+        buckets = {}
+        for t in quarter:
+            k = (t.weekday(), t.hour // 2 * 2)
+            buckets[k] = buckets.get(k, 0) + 1
+        (wd, h), n = max(buckets.items(), key=lambda kv: kv[1])
+        out.append({"tone": "info", "text": f"Busiest time: {DAYS[wd]} between {h:02d}:00 and {h + 2:02d}:00 ({n} requests in 90 days). Try to be reachable then."})
+    week = _chat_reply_seconds(now - timedelta(days=7), now)
+    if week is not None:
+        if week > 60:
+            out.append({"tone": "warn", "text": f"Chats waited a median of {_fmt_secs(week)} for a first reply this week. People expect an answer within a minute."})
+        else:
+            out.append({"tone": "ok", "text": f"Chats got a first reply in a median of {_fmt_secs(week)} this week, inside the 1-minute goal."})
+    stale = Lead.objects.filter(status=Lead.Status.NEW, created_at__lt=now - timedelta(days=1)).count()
+    if stale:
+        out.append({"tone": "warn", "text": f"{stale} {'request has' if stale == 1 else 'requests have'} waited over a day. Call today, or mark {'it' if stale == 1 else 'them'} Lost to keep the list honest."})
+    return out[:4]
+
+
+def heatmap(now):
+    grid = [[0] * 24 for _ in range(7)]
+    for t in _request_times(now - timedelta(days=90)):
+        grid[t.weekday()][t.hour] += 1
+    return grid
 
 
 @api_view(["POST"])
@@ -145,3 +229,30 @@ def clear_demo(request):
     from gallery.management.commands._demo import clear_demo as wipe
 
     return Response({"deleted": wipe()})
+
+
+@api_view(["GET"])
+def push_key(request):
+    from .push import keys
+
+    return Response({"key": keys()["public"]})
+
+
+@api_view(["POST", "DELETE"])
+def push_subscribe(request):
+    """Save (POST) or remove (DELETE) this device's push subscription."""
+    from .models import PushSubscription
+
+    sub = request.data.get("subscription") or {}
+    endpoint = sub.get("endpoint", "")
+    if request.method == "DELETE":
+        PushSubscription.objects.filter(endpoint=endpoint, user=request.user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    k = sub.get("keys") or {}
+    if not (endpoint.startswith("https://") and k.get("p256dh") and k.get("auth")):
+        return Response({"detail": "Not a valid push subscription."}, status=status.HTTP_400_BAD_REQUEST)
+    PushSubscription.objects.update_or_create(
+        endpoint=endpoint,
+        defaults={"user": request.user, "p256dh": k["p256dh"], "auth": k["auth"], "user_agent": request.headers.get("User-Agent", "")[:200]},
+    )
+    return Response({"ok": True}, status=status.HTTP_201_CREATED)

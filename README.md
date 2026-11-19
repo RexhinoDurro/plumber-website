@@ -30,8 +30,12 @@ The website still works if the backend is down: the gallery and reviews fall bac
 
 - **Overview:** who is still waiting for a reply and for how long (the number that wins jobs), requests, bookings and average first-reply time against last week, requests per day, the pipeline and live activity.
 - **Chat (works like WhatsApp):** visitors press "Message us" and just type: no form. Messages, photos, "typing…", ✓ sent / ✓✓ delivered / blue ✓✓ read, and "online" / "last seen today at 07:12" on both sides. Phone numbers or emails typed in the chat are saved as the customer's contact automatically; staff can add the name. Both sides type freely on the keyboard (Enter sends on a computer; on a phone Enter adds a line and you tap Send). Saved replies open with the ⚡ button or by typing "/" and land in the box so you can edit them first. "Add to leads" keeps the transcript. Chats survive page reloads and reconnect on their own.
+- **Nobody left hanging:** after a visitor's first message the chat asks (inside the chat, never as a form) where to reply if they close the page: WhatsApp, text or email. Replies they haven't seen are sent there after 90 seconds with a link that reopens the chat. If nobody answers within 60 seconds, an automatic holding reply goes out (it doesn't count towards your reply-time stats).
+- **Phone alerts:** the dashboard installs as an app (Add to Home Screen) and sends push notifications for new chats and requests, even when it's closed. Turn on "Push alerts" in the sidebar (or at the bottom of the page on a phone).
 - **Leads:** every quote request arrives instantly (sound, toast, tab count, optional desktop alert). Stages New → Contacted → Quoted → Booked / Lost, waiting timers, notes, search.
 - **Gallery:** drag-and-drop photo/video upload with progress. A description is required (for Google and screen readers). Publish/hide, pick home-page photos, and drag to reorder. Changes show on `/gallery` straight away.
+- **Overview insights:** plain-language tips next to the chart (after-hours requests, busiest times, chat reply speed against a 1-minute goal, requests waiting over a day) and a "when requests come in" grid by day and hour.
+- **Review requests:** when a lead is Booked, its panel offers a ready-to-edit Google review request: send it in the chat, or open WhatsApp, Messages or email with it filled in.
 - **Reviews:** add real reviews; publishing needs the customer's consent. The 3 newest replace the home-page placeholders.
 
 ### Environment variables
@@ -46,6 +50,11 @@ The website still works if the backend is down: the gallery and reviews fall bac
 | Backend | `PUBLIC_API_URL` | The backend's own public URL (used in media links) |
 | Backend | `REDIS_URL` | Needed in production for live chat across processes (in-memory is for local use) |
 | Backend | `INTERNAL_API_KEY` | Shared secret with the website |
+| Backend | `SITE_URL`, `BUSINESS_NAME`, `BUSINESS_PHONE` | Used in automatic replies and the "continue the chat" link |
+| Backend | `AUTO_REPLY_SECONDS` (60), `OFFLINE_NOTIFY_SECONDS` (90) | Timings; `0` turns each off |
+| Backend | `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | Emailing replies to visitors (prints to the console until set) |
+| Backend | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | Optional: automatic texts / WhatsApp. Without them, use the Text and WhatsApp buttons in the inbox |
+| Backend | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Push alert keys; generated into `backend/.vapid.json` if not set. Set them in production so devices stay subscribed across deploys |
 
 See `.env.example` and `backend/.env.example`.
 

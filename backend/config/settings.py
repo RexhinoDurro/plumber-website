@@ -137,6 +137,37 @@ else:
     CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
+# ---- Customer follow-up -------------------------------------------------------------
+# Public website address, used in "continue the chat" links sent to visitors.
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:3000").rstrip("/")
+BUSINESS_NAME = os.environ.get("BUSINESS_NAME", "Northline Plumbing")
+BUSINESS_PHONE = os.environ.get("BUSINESS_PHONE", "+00 000 000 000")
+# Seconds to wait before the automatic reply when nobody has answered (0 = off).
+AUTO_REPLY_SECONDS = int(os.environ.get("AUTO_REPLY_SECONDS", "60"))
+# Seconds to wait before texting/emailing a reply the visitor hasn't seen (0 = off).
+OFFLINE_NOTIFY_SECONDS = int(os.environ.get("OFFLINE_NOTIFY_SECONDS", "90"))
+
+# Email (replies to visitors who chose email). Console output until SMTP is configured.
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "hello@example.com")
+
+# SMS / WhatsApp through Twilio (optional). Without these, staff use the Text/WhatsApp buttons in the inbox.
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
+TWILIO_SMS_FROM = os.environ.get("TWILIO_SMS_FROM", "")
+TWILIO_WHATSAPP_FROM = os.environ.get("TWILIO_WHATSAPP_FROM", "")  # e.g. whatsapp:+14155238886
+
+# Web push for the dashboard app. Generated on first use if not set (see accounts.push).
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:hello@example.com")
+VAPID_FILE = BASE_DIR / ".vapid.json"
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True

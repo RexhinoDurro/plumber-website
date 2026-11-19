@@ -240,7 +240,7 @@
 .lift:hover .photo img, .lift:hover video { transform: scale(1.035); }
 
 /* Nav: underline grows from the left. */
-@media (min-width: 48rem) {
+@media (min-width: 64rem) {
   .nav-link { position: relative; }
   .nav-link::after {
     content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; background: var(--color-brand);
@@ -263,6 +263,8 @@
 
 /* ---------- Live chat widget ---------- */
 .chat-fab { bottom: calc(76px + 12px + env(safe-area-inset-bottom)); }
+.back-top { bottom: calc(76px + 12px + 56px + 12px + env(safe-area-inset-bottom)); }
+@media (min-width: 48rem) { .back-top { bottom: 92px; } }
 @media (min-width: 48rem) { .chat-fab { bottom: 24px; } }
 .chat-input {
   min-height: 44px; border: 1.5px solid var(--color-line); border-radius: var(--radius-sm);
@@ -322,3 +324,15 @@
 }
 .bubble-tail-in::before { left: -7px; clip-path: polygon(100% 0, 0 0, 100% 100%); }
 .bubble-tail-out::before { right: -7px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+
+/* Tooltips for icons and ambiguous labels in the dashboard: hover or keyboard focus */
+.tip { position: relative; }
+.tip::after {
+  content: attr(data-tip); display: none; position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 30; width: max-content; max-width: 260px;
+  transform: translate(-50%, 4px); opacity: 0; pointer-events: none;
+  background: var(--color-ink); color: var(--color-on-dark); border-radius: 6px; padding: 6px 10px;
+  font: 500 0.75rem/1.4 var(--font-body); letter-spacing: 0; text-transform: none; white-space: normal; text-align: left;
+  transition: opacity 120ms var(--ease-out-soft), transform 120ms var(--ease-out-soft);
+}
+.tip:hover::after, .tip:focus-visible::after { display: block; opacity: 1; transform: translate(-50%, 0); animation: tip-in 120ms var(--ease-out-soft); }
+@keyframes tip-in { from { opacity: 0; transform: translate(-50%, 4px); } }

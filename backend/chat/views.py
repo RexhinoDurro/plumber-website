@@ -10,7 +10,7 @@ from leads.models import Lead
 
 from . import presence
 from .models import Conversation, Message, QuickReply
-from .serializers import ConversationInfoSerializer, MessageSerializer, QuickReplySerializer, StartChatSerializer
+from .serializers import ConversationInfoSerializer, MessageSerializer, QuickReplySerializer, StartChatSerializer, VisitorContactSerializer
 from .services import add_message, conversation_payload, mark_read
 
 MAX_PHOTO_MB = 10
@@ -77,10 +77,31 @@ def visitor_messages(request, pk):
         {
             "id": str(conv.id),
             "status": conv.status,
+            "contact": conv.visitor_contact,
+            "contact_via": conv.contact_via,
             "messages": MessageSerializer(conv.messages.all(), many=True).data,
             **presence.business_status(),
         }
     )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([PublicPostThrottle])
+def visitor_contact(request, pk):
+    """The visitor tells us how to reach them if they close the page."""
+    conv = _visitor_conv(request, pk)
+    if conv is None:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    s = VisitorContactSerializer(data=request.data)
+    s.is_valid(raise_exception=True)
+    conv.visitor_contact = s.validated_data["value"]
+    conv.contact_via = s.validated_data["via"]
+    if s.validated_data.get("name", "").strip():
+        conv.visitor_name = s.validated_data["name"].strip()
+    conv.save(update_fields=["visitor_contact", "contact_via", "visitor_name"])
+    push(ADMINS, {"type": "conversation", "conversation": conversation_payload(conv)})
+    return Response({"contact": conv.visitor_contact, "contact_via": conv.contact_via})
 
 
 @api_view(["POST"])
@@ -178,6 +199,16 @@ class ConversationAdminViewSet(viewsets.ReadOnlyModelViewSet):
         conv.save(update_fields=["lead"])
         push(ADMINS, {"type": "conversation", "conversation": conversation_payload(conv)})
         return Response({"lead": lead.id}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+def followup_status(request):
+    """Which automatic follow-up routes are switched on (for the inbox)."""
+    from django.conf import settings
+
+    from .notify import channels_status
+
+    return Response({**channels_status(), "auto_reply_seconds": settings.AUTO_REPLY_SECONDS})
 
 
 class QuickReplyViewSet(viewsets.ModelViewSet):

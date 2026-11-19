@@ -32,8 +32,13 @@ export const site = {
   founded: "[YEAR]", // TODO
   // Promise used across the site — confirm the owner stands behind it.
   reviewsUrl: "https://www.google.com/maps", // TODO: your Google Business Profile reviews link
+  // TODO: your real Google rating, e.g. { value: 4.9, count: 127 }. Stars only show once this is filled in.
+  rating: null as { value: number; count: number } | null,
+  emergencyArrival: "[60] minutes", // TODO: your honest typical emergency arrival time
+  // Shown on the map (Google Maps search). TODO: your town or service-area centre.
+  mapQuery: "Budapest",
   promise: "A fixed price before we touch a pipe, and we leave the room cleaner than we found it.",
-} as const;
+};
 
 export type Testimonial = {
   quote: string;
@@ -128,3 +133,13 @@ export const guarantees = [
 ];
 /** TODO: add your trade association memberships / certifications (names only until you have their logo files). */
 export const accreditations = ["[Trade association]", "[Gas / heating register]", "[Water regulations scheme]", "[Insurance provider]"];
+
+/** "What to expect from us" vs. what too often happens. Only keep rows you can honestly stand behind. */
+export const comparison = [
+  { topic: "Price", us: "One fixed price, agreed before any work", them: "An hourly rate and a surprise at the end" },
+  { topic: "Arrival", us: "A real arrival time, and a text when we set off", them: "\u201cSometime between 8 and 6\u201d" },
+  { topic: "Your home", us: "Dust sheets, shoe covers, old parts taken away", them: "You clean up after them" },
+  { topic: "Guarantee", us: "Written on the invoice", them: "A verbal promise" },
+  { topic: "Paying", us: "After it's tested in front of you", them: "A deposit before anyone turns up" },
+  { topic: "Reaching us", us: "Call, or message us here with photos", them: "Voicemail" },
+];

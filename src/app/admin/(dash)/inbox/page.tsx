@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdmin, useAdminEvents } from "@/components/admin/AdminShell";
 import { DemoTag, EmptyState } from "@/components/admin/ui";
-import { ago, api, errorText, upload, type Conversation, type Message } from "@/components/admin/client";
+import { ago, api, contactLinks, errorText, upload, type Conversation, type Message } from "@/components/admin/client";
 import { applyReceipt, Composer, lastSeen, newClientId, PhotoViewer, Thread, Ticks, TypingBubble, upsert } from "@/components/chat/Thread";
 
 type QuickReply = { id: number; label: string; text: string };
@@ -50,6 +50,7 @@ export default function InboxPage() {
   const [fresh, setFresh] = useState<Set<string>>(new Set());
   const [viewing, setViewing] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [followup, setFollowup] = useState<{ email: boolean; sms: boolean; whatsapp: boolean; auto_reply_seconds: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const threadRef = useRef<HTMLDivElement>(null);
   const lastTyping = useRef(0);
@@ -63,6 +64,7 @@ export default function InboxPage() {
   useEffect(() => {
     loadList();
     api<QuickReply[]>("/api/admin/quick-replies/").then(setReplies).catch(() => {});
+    api<typeof followup>("/api/admin/followup/").then(setFollowup).catch(() => {});
     const pick = () => setSelected(decodeURIComponent(location.hash.slice(1)) || null);
     pick();
     window.addEventListener("hashchange", pick);
@@ -207,7 +209,7 @@ export default function InboxPage() {
     }
   };
 
-  const saveInfo = async (patch: { visitor_name?: string; visitor_contact?: string }) => {
+  const saveInfo = async (patch: { visitor_name?: string; visitor_contact?: string; contact_via?: string }) => {
     if (!selected) return;
     try {
       const c = await api<Conversation>(`/api/admin/conversations/${selected}/info/`, { method: "PATCH", body: JSON.stringify(patch) });
@@ -331,11 +333,7 @@ export default function InboxPage() {
                   <h2 className="truncate font-display text-[1.0625rem] font-bold [font-stretch:110%]">{detail.display_name}</h2>
                   <p className={`truncate text-[0.8125rem] ${isTyping || detail.visitor_online ? "text-ok" : "text-muted"}`}>{headerStatus}</p>
                 </div>
-                {detail.visitor_contact && detail.visitor_contact.replace(/\D/g, "").length >= 7 && (
-                  <a href={`tel:${detail.visitor_contact.replace(/[^\d+]/g, "")}`} className="btn btn-secondary min-h-10 px-4 text-[0.875rem]">
-                    Call
-                  </a>
-                )}
+                <ContactButtons contact={detail.visitor_contact} />
                 <button type="button" className="btn btn-secondary min-h-10 px-4 text-[0.875rem]" onClick={() => action("close", detail.status === "open" ? "Chat closed" : "Chat reopened")}>
                   {detail.status === "open" ? "Close" : "Reopen"}
                 </button>
@@ -410,6 +408,20 @@ export default function InboxPage() {
             <div className="mt-5 grid gap-4 text-[0.875rem]">
               <InlineField key={`n-${detail.id}-${detail.visitor_name}`} label="Name" value={detail.visitor_name} placeholder="Ask in the chat, then add it" onSave={(v) => saveInfo({ visitor_name: v })} />
               <InlineField key={`c-${detail.id}-${detail.visitor_contact}`} label="Phone or email" value={detail.visitor_contact} placeholder="Filled in when they type it" onSave={(v) => saveInfo({ visitor_contact: v })} />
+              <label className="grid gap-1">
+                <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-muted">If they leave, reply by</span>
+                <select
+                  value={detail.contact_via}
+                  onChange={(e) => saveInfo({ contact_via: e.target.value })}
+                  className="rounded-sm border border-transparent bg-bg px-2 py-1.5 hover:border-line focus:border-brand focus:outline-none"
+                >
+                  <option value="">Not chosen yet</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="sms">Text message</option>
+                  <option value="email">Email</option>
+                </select>
+                <FollowupNote via={detail.contact_via} contact={detail.visitor_contact} status={followup} notifiedAt={detail.last_notified_at} />
+              </label>
               <Info label="Started on" value={detail.page_url || "–"} />
               <Info
                 label="First reply"
@@ -535,5 +547,61 @@ function SavedReplies({
       )}
       {children(onKeyDown)}
     </div>
+  );
+}
+
+/** Call / WhatsApp / Text / Email buttons that open the device's own apps. */
+function ContactButtons({ contact }: { contact: string }) {
+  if (!contact) return null;
+  const l = contactLinks(contact);
+  const cls = "btn btn-secondary min-h-10 px-3 text-[0.8125rem]";
+  return (
+    <span className="hidden gap-1.5 sm:flex">
+      {l.isPhone && (
+        <>
+          <a href={l.call} className={cls}>
+            Call
+          </a>
+          <a href={l.whatsapp} target="_blank" rel="noopener" className={cls}>
+            WhatsApp
+          </a>
+          <a href={l.sms} className={cls}>
+            Text
+          </a>
+        </>
+      )}
+      {l.isEmail && (
+        <a href={l.email} className={cls}>
+          Email
+        </a>
+      )}
+    </span>
+  );
+}
+
+function FollowupNote({
+  via,
+  contact,
+  status,
+  notifiedAt,
+}: {
+  via: string;
+  contact: string;
+  status: { email: boolean; sms: boolean; whatsapp: boolean } | null;
+  notifiedAt: string | null;
+}) {
+  if (!via || !contact) {
+    return <span className="text-[0.8125rem] text-muted">The chat asks them for a number or email after their first message.</span>;
+  }
+  const automatic = status ? status[via as "email" | "sms" | "whatsapp"] : false;
+  return (
+    <span className="text-[0.8125rem] text-muted">
+      {automatic
+        ? "Replies they haven't seen are sent there automatically after a minute and a half, with a link back to this chat."
+        : via === "email"
+          ? "Email sending isn't set up yet (see README). Use the Email button for now."
+          : `Automatic ${via === "sms" ? "texts" : "WhatsApp messages"} need a Twilio account (see README). Use the ${via === "sms" ? "Text" : "WhatsApp"} button for now.`}
+      {notifiedAt && <span className="mt-1 block">Last sent {ago(notifiedAt)} ago.</span>}
+    </span>
   );
 }

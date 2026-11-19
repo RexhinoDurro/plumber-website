@@ -1,19 +1,28 @@
 import { site } from "@/content/site";
 import { getReviews } from "@/lib/content";
+import { Rating } from "./Rating";
 
 /** Customer reviews published from the dashboard (with consent). Placeholders until there are real ones. */
 export async function Reviews() {
   const items = await getReviews();
   return (
-    <section className="section pt-0" aria-labelledby="reviews-title">
+    <section className="section" aria-labelledby="reviews-title">
       <div className="wrap">
-        <div className="rv mb-12 grid gap-4">
-          <p className="label">What customers say</p>
-          <h2 id="reviews-title" className="max-w-[16ch]">Ask our neighbours.</h2>
+        <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
+          <div className="grid gap-4">
+            <p className="label">What customers say</p>
+            <h2 id="reviews-title" className="max-w-[16ch]">Ask our neighbours.</h2>
+          </div>
+          <div className="grid justify-items-start gap-1 md:justify-items-end">
+            <Rating />
+            <a href={site.reviewsUrl} className="text-[0.9375rem] font-semibold text-water">
+              Read all our reviews on Google
+            </a>
+          </div>
           {items.some((t) => t.placeholder) && (
-            <p className="placeholder-note max-w-[60ch]">
-              Placeholder reviews: replace them with real customer reviews in <code>src/content/site.ts</code>. Never publish
-              invented ones.
+            <p className="placeholder-note max-w-[60ch] md:col-span-2">
+              Placeholder reviews: add real ones (with the customer&apos;s OK) in the dashboard under Reviews, and your Google rating
+              in <code>src/content/site.ts</code>. Never publish invented ones.
             </p>
           )}
         </div>

@@ -10,6 +10,7 @@ const links = [
   { href: "/services", label: "Services" },
   { href: "/emergency", label: "Emergency" },
   { href: "/gallery", label: "Our work" },
+  { href: "/areas", label: "Areas" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -55,9 +56,9 @@ export function Header() {
           id="site-nav"
           aria-label="Main"
           className={`${open ? "block" : "hidden"} fixed inset-x-0 top-16 border-b border-line bg-bg px-[clamp(20px,4vw,40px)] pb-8 pt-4
-            md:static md:ml-auto md:block md:border-0 md:bg-transparent md:p-0`}
+            lg:static lg:ml-auto lg:block lg:border-0 lg:bg-transparent lg:p-0`}
         >
-          <ul className="flex flex-col md:flex-row md:gap-1">
+          <ul className="flex flex-col lg:flex-row lg:gap-1">
             {links.map((l) => {
               const current = pathname === l.href || (l.href !== "/" && pathname.startsWith(l.href + "/"));
               return (
@@ -67,8 +68,8 @@ export function Header() {
                     aria-current={current ? "page" : undefined}
                     onClick={() => setOpen(false)}
                     className={`block py-3 font-display text-[1.75rem] font-bold no-underline text-ink [font-stretch:125%]
-                      nav-link md:rounded-sm md:px-3 md:py-2 md:font-body md:text-base md:font-medium md:[font-stretch:100%]
-                      ${current ? "text-brand-deep md:text-ink" : ""}`}
+                      nav-link lg:rounded-sm lg:px-3 lg:py-2 lg:font-body lg:text-base lg:font-medium lg:[font-stretch:100%]
+                      ${current ? "text-brand-deep lg:text-ink" : ""}`}
                   >
                     {l.label}
                   </Link>
@@ -81,7 +82,7 @@ export function Header() {
         <Link href="/contact" className="btn btn-secondary hidden min-h-11 px-4 text-[0.95rem] lg:inline-flex">
           Get a quote
         </Link>
-        <a href={site.phoneHref} className="btn ml-auto md:ml-0 min-h-12 md:min-h-11 w-12 px-0 md:w-auto md:px-4 text-[0.95rem]">
+        <a href={site.phoneHref} className="btn ml-auto lg:ml-0 min-h-12 md:min-h-11 w-12 px-0 md:w-auto md:px-4 text-[0.95rem]">
           <PhoneIcon />
           <span className="hidden md:inline">{site.phone}</span>
           <span className="sr-only md:hidden">Call {site.phone}</span>
@@ -89,7 +90,7 @@ export function Header() {
 
         <button
           type="button"
-          className="inline-flex size-12 items-center justify-center rounded-full border-[1.5px] border-ink md:hidden"
+          className="inline-flex size-12 items-center justify-center rounded-full border-[1.5px] border-ink lg:hidden"
           aria-expanded={open}
           aria-controls="site-nav"
           onClick={() => setOpen((o) => !o)}

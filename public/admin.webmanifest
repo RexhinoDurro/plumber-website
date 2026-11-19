@@ -1,0 +1,14 @@
+{
+  "name": "Northline Dashboard",
+  "short_name": "Dashboard",
+  "description": "Chats, quote requests, gallery and reviews.",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#F4F7FB",
+  "theme_color": "#0A1A33",
+  "icons": [
+    { "src": "/admin-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/admin-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

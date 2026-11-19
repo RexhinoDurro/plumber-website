@@ -33,6 +33,10 @@ with sync_playwright() as p:
     admin.wait_for_url(f"{BASE}/admin")
     expect(admin.get_by_text("Waiting for a reply")).to_be_visible()
     expect(admin.get_by_text("Live: visitors see you online")).to_be_visible(timeout=8000)
+    expect(admin.get_by_text("When requests come in")).to_be_visible()
+    expect(admin.get_by_text("What the numbers say")).to_be_visible()
+    assert admin.evaluate("navigator.serviceWorker.getRegistration('/admin').then(r => !!r)"), "dashboard service worker not registered"
+    expect(admin.get_by_role("button", name="Turn on alerts")).to_be_visible()
     time.sleep(1.2)
     admin.screenshot(path=f"{SHOTS}/02-overview.png", full_page=True)
     print("login + overview ok")
@@ -51,6 +55,15 @@ with sync_playwright() as p:
     expect(panel.get_by_text("kitchen tap is dripping")).to_be_visible()
     expect(panel.get_by_label("Delivered").first).to_be_visible(timeout=8000)  # staff online: two grey ticks
     print("visitor started chat without a form; delivered ticks ok")
+
+    # the chat asks where to reply if they leave (inside the chat, not a form up front)
+    card = panel.get_by_role("form", name="Where should we reply if you leave?")
+    expect(card).to_be_visible()
+    card.get_by_role("radio", name="Email").click()
+    card.get_by_label("Your email").fill("reka@example.com")
+    card.get_by_role("button", name="Save").click()
+    expect(panel.get_by_text("reka@example.com")).to_be_visible()
+    print("contact card ok")
 
     # --- admin gets the alert and opens the chat -> visitor's ticks turn to Read
     expect(admin.get_by_text("New chat message")).to_be_visible(timeout=8000)
@@ -90,8 +103,8 @@ with sync_playwright() as p:
     vis.locator("#chat-draft").fill("District XIII, 1134. Call me on +36 30 555 1234")
     vis.keyboard.press("Enter")
     expect(admin.locator("[role=log]").get_by_text("District XIII, 1134")).to_be_visible(timeout=8000)
-    expect(admin.get_by_role("link", name="Call")).to_be_visible(timeout=8000)
-    print("visitor -> admin ok, phone detected")
+    expect(admin.locator("header").get_by_role("link", name="Email")).to_be_visible(timeout=8000)
+    print("visitor -> admin ok, contact shown")
 
     # visitor sends a photo -> admin sees it in the thread
     pbuf = io.BytesIO(); Image.new("RGB", (800, 600), (90, 120, 160)).save(pbuf, "JPEG")
@@ -135,6 +148,10 @@ with sync_playwright() as p:
     dlg = admin.get_by_role("dialog", name=re.compile("Bence"))
     dlg.get_by_role("button", name="Quoted").click()
     expect(admin.get_by_text("Moved to Quoted")).to_be_visible()
+    dlg.get_by_role("button", name="Booked").click()
+    expect(dlg.get_by_text("Ask for a Google review")).to_be_visible()
+    expect(dlg.get_by_role("link", name="WhatsApp")).to_have_attribute("href", re.compile(r"^https://wa\.me/36701112233\?text="))
+    print("review request ok")
     admin.screenshot(path=f"{SHOTS}/06-leads-drawer.png")
     admin.keyboard.press("Escape")
     print("lead stage change ok")
@@ -160,6 +177,35 @@ with sync_playwright() as p:
     admin.goto(f"{BASE}/admin"); time.sleep(1.2)
     admin.screenshot(path=f"{SHOTS}/10-overview-after.png", full_page=True)
 
+    # --- visitor leaves; a reply they don't see goes to their email with a link back into the chat
+    import json as _json
+    sess = _json.loads(vis.evaluate("localStorage.getItem('northline-chat')"))
+    LOG = os.environ.get("BACKEND_LOG", "/tmp/daphne.log")
+    log_start = os.path.getsize(LOG) if os.path.exists(LOG) else 0
+    vis.close()
+    time.sleep(1.5)
+    admin.goto(f"{BASE}/admin/inbox#{sess['id']}")
+    expect(admin.locator("[role=log]").get_by_text("District XIII, 1134")).to_be_visible(timeout=8000)
+    admin.locator("#reply").fill("Good news: the part arrived, we can come Friday at 9.")
+    admin.keyboard.press("Enter")
+    deadline = time.time() + 12
+    log = ""
+    while time.time() < deadline:
+        with open(LOG, encoding="utf-8", errors="ignore") as fh:
+            fh.seek(log_start)
+            log = fh.read()
+        if f"chat={sess['id']}" in log:
+            break
+        time.sleep(0.5)
+    assert "replied to your message" in log and f"chat={sess['id']}" in log, "offline reply email not sent"
+    print("offline reply emailed ok")
+    fresh = b.new_context(viewport={"width": 1280, "height": 860}).new_page(); wire(fresh, "resume")
+    fresh.goto(f"{BASE}/?chat={sess['id']}&t={sess['token']}")
+    expect(fresh.locator("#chat-panel").get_by_text("can come Friday at 9")).to_be_visible(timeout=8000)
+    assert "chat=" not in fresh.url
+    print("resume link ok")
+    vis = vis_ctx.new_page(); wire(vis, "visitor2")
+
     # --- admin leaves -> visitor sees "last seen today at ..."
     admin_ctx.close()
     vis.goto(f"{BASE}/about")
@@ -180,6 +226,9 @@ with sync_playwright() as p:
     time.sleep(0.8)
     m.screenshot(path=f"{SHOTS}/12-mobile-chat.png")
     print("mobile typing ok")
+    # nobody online -> automatic holding reply (AUTO_REPLY_SECONDS=5 in the test server)
+    expect(m.locator("#chat-panel [role=log]").get_by_text(re.compile("out on a job right now and will reply"))).to_be_visible(timeout=15000)
+    print("auto-reply ok")
     m.goto(f"{BASE}/admin/login")
     m.fill("input[name=username]", "admin"); m.fill("input[name=password]", os.environ.get("ADMIN_PASSWORD", "plumber-demo-2026")); m.click("button[type=submit]")
     m.wait_for_url(f"{BASE}/admin"); time.sleep(1.2)

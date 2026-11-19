@@ -10,6 +10,8 @@ export type ChatMsg = {
   delivered_at: string | null;
   read_at: string | null;
   created_at: string;
+  /** Sent automatically when nobody answered in time. */
+  auto?: boolean;
   /** Local only: shown before the server has it. */
   pending?: boolean;
   failed?: boolean;
@@ -125,6 +127,9 @@ export function Thread({
                 } ${m.image ? "p-1" : "px-2.5 pb-1.5 pt-1.5"} rounded-[10px] ${first ? (mine ? "rounded-tr-[2px] bubble-tail-out" : "rounded-tl-[2px] bubble-tail-in") : ""}`}
               >
                 <span className="sr-only">{mine ? "You" : theirName}: </span>
+                {m.auto && me === "admin" && (
+                  <span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-[0.05em] text-muted">Automatic reply</span>
+                )}
                 {m.image && (
                   <button type="button" onClick={() => onImage?.(m.image!)} className="block cursor-zoom-in overflow-hidden rounded-[8px]" aria-label="Open photo">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

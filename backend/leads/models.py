@@ -27,6 +27,7 @@ class Lead(models.Model):
     demo = models.BooleanField(default=False, help_text="Sample record created by seed_demo --demo; removed by clear_demo.")
     notes = models.TextField(blank=True)
     first_contacted_at = models.DateTimeField(null=True, blank=True)
+    review_requested_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

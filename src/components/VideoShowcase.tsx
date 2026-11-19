@@ -4,15 +4,20 @@ import { useState } from "react";
 import { showcase } from "@/content/media";
 
 /** Click-to-play video: a poster with a big play button, then the real player with controls. */
-export function VideoShowcase() {
+export function VideoShowcase({ bare = false }: { bare?: boolean }) {
   const [playing, setPlaying] = useState(false);
 
+  const Wrap = bare ? "div" : "section";
   return (
-    <section className="section bg-surface" aria-labelledby="watch-title">
-      <div className="wrap grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+    <Wrap className={bare ? "" : "section bg-surface"} aria-labelledby="watch-title">
+      <div className={`${bare ? "" : "wrap "}grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16`}>
         <div className="grid gap-5">
           <p className="label">Watch a job</p>
-          <h2 id="watch-title" className="max-w-[14ch]">See how we work before you call.</h2>
+          {bare ? (
+            <h3 id="watch-title" className="max-w-[14ch] text-[clamp(1.6rem,1.6vw+1rem,2.4rem)]">See how we work before you call.</h3>
+          ) : (
+            <h2 id="watch-title" className="max-w-[14ch]">See how we work before you call.</h2>
+          )}
           <p className="lede">
             No staged smiles: a real under-basin repair, from finding the leak to testing the fix. Twenty seconds, no sound
             needed.
@@ -55,9 +60,9 @@ export function VideoShowcase() {
           )}
         </div>
       </div>
-      <p className="wrap mt-3 text-right text-xs text-muted">
+      <p className={`${bare ? "" : "wrap "}mt-3 text-right text-xs text-muted`}>
         Video: <a href={showcase.creditUrl}>{showcase.credit} / Pexels</a>
       </p>
-    </section>
+    </Wrap>
   );
 }

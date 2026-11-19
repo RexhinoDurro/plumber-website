@@ -7,7 +7,7 @@ import { site } from "@/content/site";
 const initial: QuickState = { ok: false, errors: {} };
 
 /** Hero quote card: three fields, the conversion step above the fold. */
-export function QuickQuote() {
+export function QuickQuote({ defaultJob = "Leak or emergency" }: { defaultJob?: string }) {
   const [state, action, pending] = useActionState(sendQuickQuote, initial);
   const v = state.values ?? {};
 
@@ -54,7 +54,7 @@ export function QuickQuote() {
           </div>
           <div className="field">
             <label htmlFor="qq-job">What do you need?</label>
-            <select id="qq-job" name="job" defaultValue={v.job ?? "Leak or emergency"}>
+            <select id="qq-job" name="job" defaultValue={v.job ?? defaultJob}>
               {["Leak or emergency", "Blocked drain", "Bathroom", "Kitchen", "Heating or boiler", "Something else"].map((o) => (
                 <option key={o}>{o}</option>
               ))}

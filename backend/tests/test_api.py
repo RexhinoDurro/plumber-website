@@ -183,8 +183,10 @@ def test_demo_review_cannot_be_published(admin_api):
 def test_throttle_uses_visitor_ip_with_internal_key(settings, api):
     from django.test import override_settings
 
+    from core.throttles import PublicPostThrottle as _T
+
+    original = _T.THROTTLE_RATES
     with override_settings(INTERNAL_API_KEY="k1", REST_FRAMEWORK={**settings.REST_FRAMEWORK, "DEFAULT_THROTTLE_RATES": {"public_post": "2/hour", "login": "10/minute"}}):
-        from rest_framework.settings import api_settings
         from core.throttles import PublicPostThrottle
 
         PublicPostThrottle.THROTTLE_RATES = {"public_post": "2/hour"}
@@ -196,4 +198,4 @@ def test_throttle_uses_visitor_ip_with_internal_key(settings, api):
         assert api.post("/api/leads/", body, format="json", **h1).status_code == 429
         # a different visitor behind the same web server is not blocked
         assert api.post("/api/leads/", body, format="json", **h2).status_code == 201
-        PublicPostThrottle.THROTTLE_RATES = api_settings.DEFAULT_THROTTLE_RATES
+    _T.THROTTLE_RATES = original

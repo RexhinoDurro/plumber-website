@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { site, faqs, audiences, guarantees, accreditations } from "@/content/site";
+import { site, faqs, audiences, guarantees, accreditations, comparison } from "@/content/site";
 import { services } from "@/content/services";
-import { hero, videos } from "@/content/media";
-import { VideoBand } from "@/components/VideoBand";
+import { hero } from "@/content/media";
 import { Photo } from "@/components/Photo";
-import { CtaBand } from "@/components/CtaBand";
 import { PhoneIcon } from "@/components/Icons";
+import { Rating } from "@/components/Rating";
+import { MapEmbed } from "@/components/MapEmbed";
+import { EmergencyCta } from "@/components/EmergencyCta";
 import { QuickQuote } from "@/components/QuickQuote";
 import { VideoShowcase } from "@/components/VideoShowcase";
 import { ProblemFinder } from "@/components/ProblemFinder";
@@ -14,25 +15,21 @@ import { FaqJsonLd } from "@/components/JsonLd";
 import { Reviews } from "@/components/Reviews";
 import { RecentWork } from "@/components/RecentWork";
 
+// Exactly three labelled steps: what they do, what we handle, what they get.
 const steps = [
   {
-    title: "Call, or send us photos",
-    text: "Tell us what's happening. For anything urgent we give you an honest arrival time on the phone, not a vague window.",
+    title: "Call, or message us with a photo",
+    text: "Tell us what's happening. For anything urgent you get an honest arrival time on the phone, not a vague window.",
     photo: "gloves-tools",
   },
   {
-    title: "You get a fixed price",
+    title: "You get a fixed price before we start",
     text: "We find the cause, explain it in plain words and give you one price. If something unexpected turns up, we stop and ask first.",
     photo: "pressure-gauge",
   },
   {
-    title: "We do the job, tidily",
-    text: "Dust sheets down, shoes covered, old parts taken away. The room is left as we found it, or cleaner.",
-    photo: "spanner",
-  },
-  {
-    title: "We test it in front of you",
-    text: "Every joint is checked under pressure before we leave, and you see it working. Then you pay, not before.",
+    title: "Fixed, tested in front of you, cleaned up",
+    text: "Dust sheets down, old parts taken away, every joint checked under pressure while you watch. Then you pay, not before.",
     photo: "shower-flow",
   },
 ];
@@ -44,7 +41,7 @@ export default function Home() {
 
   return (
     <>
-      {/* ===== Hero ===== */}
+      {/* ===== 1. Hero: what, where, why trust, how to call, all in the first screen ===== */}
       <section
         className="on-dark relative isolate grid min-h-[min(88svh,820px)] items-end overflow-hidden bg-ink bg-cover bg-center text-on-dark"
         style={{ backgroundImage: `url(${hero.poster})` }}
@@ -71,22 +68,39 @@ export default function Home() {
         />
         <div className="wrap grid items-end gap-12 pb-14 pt-24 md:pb-16 lg:grid-cols-[1.25fr_0.75fr] lg:gap-16">
           <div className="grid gap-8">
-            <p className="label">Plumbing &amp; heating · {site.city}</p>
+            <p className="label">Plumber &amp; heating engineer · {site.city} · 24/7 emergencies</p>
             <h1 id="hero-title" className="max-w-[15ch] text-[clamp(2.6rem,4.4vw+0.6rem,5rem)]">
               <span className="line-mask hero-line"><span>Plumbing fixed properly.</span></span>
               <span className="line-mask hero-line"><span className="text-sky">Priced before we start.</span></span>
             </h1>
             <p className="lede hero-fade d1 !text-on-dark-muted">
-              For homeowners and landlords in {site.city}: leaks, blocked drains, bathrooms, kitchens and boilers. One call,
-              an honest arrival time, and a fixed price before any work begins.
+              Leaks, blocked drains, boilers, bathrooms and kitchens across {site.city}. An honest arrival time and one fixed
+              price before any work begins.
             </p>
-            <div className="hero-fade d2 flex flex-wrap items-center gap-3">
-              <a href={site.phoneHref} className="btn">
-                <PhoneIcon /> Call {site.phone}
-              </a>
-              <Link href="/services" className="btn btn-secondary">
-                See our services
-              </Link>
+            <div className="hero-fade d2 grid gap-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <a href={site.phoneHref} className="btn">
+                  <PhoneIcon /> Call {site.phone}
+                </a>
+                <Link href="/contact" className="btn btn-secondary !border-on-dark/60 !text-on-dark hover:!bg-on-dark/10">
+                  Get a fixed price
+                </Link>
+              </div>
+              <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.9375rem] text-on-dark-muted">
+                <Rating tone="dark" />
+                <span className="inline-flex items-center gap-1.5">
+                  <svg viewBox="0 0 24 24" className="size-4 text-sky" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                    <path d="m5 12.5 4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Licensed &amp; insured
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <svg viewBox="0 0 24 24" className="size-4 text-sky" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                    <path d="m5 12.5 4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Written guarantee
+                </span>
+              </p>
             </div>
           </div>
           <div className="hero-fade d3">
@@ -96,14 +110,14 @@ export default function Home() {
       </section>
 
 
-      {/* ===== Proof strip ===== */}
-      <section aria-label="Why people choose us" className="border-b border-line bg-surface">
+      {/* ===== 2. Trust bar: the doubts people have before calling a stranger ===== */}
+      <section aria-label="Why people trust us" className="border-b border-line bg-surface">
         <ul className="wrap grid grid-cols-2 gap-x-6 gap-y-5 py-7 lg:grid-cols-4">
           {[
-            ["Google reviews", "[Rating] from [N] reviews (add yours)", ""],
-            ["Fixed price", "Agreed before any work starts", ""],
-            ["Licensed & insured", site.licence, ""],
-            [`Since ${site.founded}`, `Local to ${site.city}`, ""],
+            [site.rating ? `${site.rating.value.toFixed(1)} on Google` : "Google reviews", site.rating ? `from ${site.rating.count} reviews` : "[Add your rating in site.ts]"],
+            ["24/7 emergencies", `Usually there within ${site.emergencyArrival}`],
+            ["Licensed & insured", site.licence],
+            ["Fixed price", "Agreed before any work starts"],
           ].map(([big, small]) => (
             <li key={big} className="grid gap-0.5 border-l-4 border-brand pl-4">
               <span className="font-display text-xl font-extrabold text-ink [font-stretch:112%]">{big}</span>
@@ -113,9 +127,8 @@ export default function Home() {
         </ul>
       </section>
 
-      <ProblemFinder />
 
-      {/* ===== Services bento ===== */}
+      {/* ===== 3. Services: in the first two screens ===== */}
       <section className="section" aria-labelledby="services-title">
         <div className="wrap">
           <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
@@ -137,67 +150,139 @@ export default function Home() {
               <ServiceCard key={s.slug} service={s} size="small" />
             ))}
           </div>
+
+          <ul className="mt-6 grid gap-4 md:grid-cols-2" aria-label="Who we work for">
+            {audiences.map((a) => (
+              <li key={a.id}>
+                <Link
+                  href="/contact"
+                  className="lift group flex items-center gap-5 rounded-md border-[1.5px] border-line bg-surface p-5 text-ink no-underline hover:border-brand"
+                >
+                  <Photo id={a.photo} className="size-20 shrink-0 rounded-sm" sizes="80px" />
+                  <span className="grid gap-1">
+                    <b className="font-display text-lg font-bold [font-stretch:110%] group-hover:text-water">{a.title}</b>
+                    <span className="text-[0.95rem] text-muted">{a.points[0]}</span>
+                  </span>
+                  <span className="ml-auto text-xl text-brand transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">
+                    →
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
 
-      {/* ===== Two audiences ===== */}
-      <section className="section pt-0" aria-labelledby="who-title">
-        <div className="wrap">
-          <h2 id="who-title" className="sr-only">Who we work for</h2>
-          <div className="rv-stagger grid gap-6 md:grid-cols-2">
-            {audiences.map((a, i) => (
-              <article key={a.id} className="lift grid overflow-hidden rounded-md bg-surface shadow-hair">
-                <Photo id={a.photo} elbow={i ? "tl" : "tr"} className="aspect-[16/8] rounded-none" sizes="(max-width: 860px) 100vw, 50vw" />
-                <div className="grid gap-4 p-7 md:p-8">
-                  <h3 className="text-[1.75rem]">{a.title}</h3>
-                  <p className="text-muted">{a.text}</p>
-                  <ul className="brand-list">
-                    {a.points.map((pt) => (
-                      <li key={pt}>{pt}</li>
-                    ))}
-                  </ul>
-                  <Link href="/contact" className="btn btn-secondary mt-2 justify-self-start">
-                    {a.cta}
-                  </Link>
-                </div>
-              </article>
+      {/* ===== 4. "What's happening?" finder: the problem section ===== */}
+      <ProblemFinder />
+
+
+      {/* ===== 5. Why us: an honest comparison + the guarantee ===== */}
+      <section className="section on-dark grain bg-ink text-on-dark" aria-labelledby="why-title">
+        <div className="wrap grid gap-14">
+          <div className="rv grid gap-4 md:grid-cols-[1fr_1fr] md:items-end md:gap-16">
+            <div className="grid gap-4">
+              <p className="label">Why people choose us</p>
+              <h2 id="why-title" className="max-w-[14ch]">What to expect when we come round.</h2>
+            </div>
+            <p className="lede !text-on-dark-muted">
+              Most bad experiences with tradespeople come down to the same few things. Here&apos;s how we handle each one.
+            </p>
+          </div>
+
+          <div className="rv overflow-hidden rounded-md ring-1 ring-on-dark/15">
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">How we work compared with what too often happens</caption>
+              <thead>
+                <tr className="text-[0.8125rem] uppercase tracking-[0.06em] text-on-dark-muted">
+                  <th scope="col" className="hidden w-[18%] px-6 py-4 font-semibold md:table-cell"><span className="sr-only">Topic</span></th>
+                  <th scope="col" className="bg-brand/25 px-5 py-4 font-semibold text-white md:px-6">With {site.shortName}</th>
+                  <th scope="col" className="px-5 py-4 font-semibold md:px-6">Too often elsewhere</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.map((c) => (
+                  <tr key={c.topic} className="border-t border-on-dark/12 align-top">
+                    <th scope="row" className="hidden px-6 py-4 font-display font-bold text-white [font-stretch:110%] md:table-cell">{c.topic}</th>
+                    <td className="bg-brand/15 px-5 py-4 md:px-6">
+                      <span className="flex gap-2.5">
+                        <svg viewBox="0 0 24 24" className="mt-0.5 size-5 shrink-0 text-[#6fd39b]" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+                          <path d="m5 12.5 4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span><span className="block text-[0.75rem] font-semibold uppercase tracking-[0.06em] text-sky md:hidden">{c.topic}</span>{c.us}</span>
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-on-dark-muted md:px-6">
+                      <span className="flex gap-2.5">
+                        <svg viewBox="0 0 24 24" className="mt-0.5 size-5 shrink-0 opacity-60" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+                          <path d="M7 7l10 10M17 7 7 17" strokeLinecap="round" />
+                        </svg>
+                        <span>{c.them}</span>
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <ul className="rv-stagger grid gap-8 md:grid-cols-3">
+            {guarantees.map((g) => (
+              <li key={g.title} className="grid content-start gap-3 border-t-2 border-sky/60 pt-5">
+                <svg viewBox="0 0 24 24" className="size-7 text-sky" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" />
+                  <path d="m8.8 12.2 2.2 2.2 4.4-4.6" />
+                </svg>
+                <h3 className="text-xl">{g.title}</h3>
+                <p className="text-on-dark-muted">{g.text}</p>
+              </li>
             ))}
+          </ul>
+          <div className="grid gap-4 border-t border-on-dark/15 pt-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.06em] text-on-dark-muted">Members and registrations</p>
+            <ul className="flex flex-wrap gap-3">
+              {accreditations.map((a) => (
+                <li key={a} className="rounded-sm border border-dashed border-on-dark/30 px-5 py-3 text-[0.95rem] text-on-dark-muted">
+                  {a}
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm text-on-dark-muted">
+              Placeholders: add your real memberships and the guarantee length in <code>src/content/site.ts</code>.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ===== Reviews (from the dashboard, placeholders until there are real ones) ===== */}
+      {/* ===== 6. Recent work + one "watch a job" video ===== */}
+      <section className="section bg-surface" aria-labelledby="work-title">
+        <div className="wrap">
+          <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
+            <div className="grid gap-4">
+              <p className="label">Recent work</p>
+              <h2 id="work-title" className="max-w-[14ch]">Jobs we&apos;re proud of.</h2>
+            </div>
+            <Link href="/gallery" className="btn btn-secondary">
+              See the full gallery
+            </Link>
+          </div>
+          <RecentWork />
+          <div className="mt-20 border-t border-line pt-16">
+            <VideoShowcase bare />
+          </div>
+        </div>
+      </section>
+
+      {/* ===== 7. Reviews: rating summary, one big quote, short snippets ===== */}
       <Reviews />
 
-      {/* ===== Promise: full-bleed video band ===== */}
-      <VideoBand video={videos.shower} labelledBy="promise-title">
-        <div className="wrap grid gap-10 py-28 md:py-36">
-          <p className="label">Our promise</p>
-          <h2 id="promise-title" className="max-w-[17ch] text-[clamp(2.2rem,4.5vw+0.5rem,4.5rem)]">
-            {site.promise}
-          </h2>
-          <dl className="grid max-w-3xl gap-6 border-t border-on-dark/20 pt-8 sm:grid-cols-3">
-            {[
-              ["Price", "Agreed before any work"],
-              ["Arrival", "An honest time, not a window"],
-              ["Finish", "Tested in front of you"],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <dt className="font-display text-2xl font-extrabold text-sky [font-stretch:125%]">{k}</dt>
-                <dd className="m-0 mt-1 text-on-dark-muted">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </VideoBand>
-
-      {/* ===== How it works: the blue pipe line ===== */}
+      {/* ===== 8. How it works: exactly three labelled steps ===== */}
       <section className="section blueprint" aria-labelledby="how-title">
         <div className="wrap">
           <div className="rv mb-16 grid gap-4">
-            <p className="label">How a job works</p>
-            <h2 id="how-title" className="max-w-[18ch]">No surprises on the bill, no mess left behind.</h2>
+            <p className="label">What happens when you get in touch</p>
+            <h2 id="how-title" className="max-w-[18ch]">Three steps. No surprises on the bill.</h2>
           </div>
           <ol className="pipe-steps relative grid gap-16 pl-12 md:gap-24 md:pl-[72px]">
             <svg
@@ -239,101 +324,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== Guarantees + accreditations ===== */}
-      <section className="section on-dark grain bg-ink text-on-dark" aria-labelledby="guarantee-title">
-        <div className="wrap grid gap-14">
-          <div className="rv grid gap-4 md:grid-cols-[1fr_1fr] md:items-end md:gap-16">
-            <div className="grid gap-4">
-              <p className="label">Our guarantee</p>
-              <h2 id="guarantee-title" className="max-w-[13ch]">Guaranteed, in writing.</h2>
-            </div>
-            <p className="lede !text-on-dark-muted">
-              Every job comes with a written guarantee on the invoice. If something we fixed fails, we come back.
-            </p>
-          </div>
-          <ul className="rv-stagger grid gap-8 md:grid-cols-3">
-            {guarantees.map((g) => (
-              <li key={g.title} className="grid content-start gap-3 border-t-2 border-sky/60 pt-5">
-                <svg viewBox="0 0 24 24" className="size-7 text-sky" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" />
-                  <path d="m8.8 12.2 2.2 2.2 4.4-4.6" />
-                </svg>
-                <h3 className="text-xl">{g.title}</h3>
-                <p className="text-on-dark-muted">{g.text}</p>
-              </li>
-            ))}
-          </ul>
-          <div className="grid gap-4 border-t border-on-dark/15 pt-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.06em] text-on-dark-muted">Members and registrations</p>
-            <ul className="flex flex-wrap gap-3">
-              {accreditations.map((a) => (
-                <li key={a} className="rounded-sm border border-dashed border-on-dark/30 px-5 py-3 text-[0.95rem] text-on-dark-muted">
-                  {a}
-                </li>
-              ))}
-            </ul>
-            <p className="text-sm text-on-dark-muted">
-              Placeholders: add your real memberships and the guarantee length in <code>src/content/site.ts</code>.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <VideoShowcase />
-
-      {/* ===== Emergency band ===== */}
-      <VideoBand video={videos.drip} align="full" labelledBy="emergency-title" className="section">
-        <div className="wrap grid items-center gap-12 md:grid-cols-[1.1fr_0.9fr] md:gap-16">
-          <div>
-            <p className="label">Leak right now?</p>
-            <h2 id="emergency-title" className="mt-4 max-w-[14ch]">Do these four things, then call us.</h2>
-            <a
-              href={site.phoneHref}
-              className="mt-4 mb-6 inline-block font-display text-[clamp(2rem,4vw+0.5rem,3.75rem)] font-extrabold leading-none tracking-[-0.02em] text-sky no-underline decoration-[3px] hover:underline [font-stretch:125%]"
-            >
-              {site.phone}
-            </a>
-            <p className="lede !text-on-dark-muted">
-              We answer, tell you what to do while we&apos;re on the way, and give you a real arrival time.
-            </p>
-          </div>
-          <ol className="grid gap-0">
-            {[
-              ["Turn off the water", "Find the stopcock, usually under the kitchen sink, and turn it clockwise."],
-              ["Switch off nearby electrics", "If water is near sockets or lights, turn them off at the fuse box."],
-              ["Catch and photograph it", "Buckets and towels down. A photo helps us bring the right parts."],
-              ["Call us", "Tell us what you see. We'll take it from there."],
-            ].map(([b, s], i) => (
-              <li key={b} className="grid grid-cols-[40px_1fr] gap-4 border-t border-on-dark/15 py-4">
-                <span className="font-display text-2xl font-extrabold leading-none text-sky [font-stretch:125%]">{i + 1}</span>
-                <span>
-                  <b className="block font-semibold">{b}</b>
-                  <span className="text-base text-on-dark-muted">{s}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </VideoBand>
-
-      {/* ===== Recent work ===== */}
-      <section className="section bg-surface" aria-labelledby="work-title">
-        <div className="wrap">
-          <div className="rv mb-12 grid items-end gap-4 md:grid-cols-[1fr_auto]">
-            <div className="grid gap-4">
-              <p className="label">Recent work</p>
-              <h2 id="work-title" className="max-w-[14ch]">Jobs we&apos;re proud of.</h2>
-            </div>
-            <Link href="/gallery" className="btn btn-secondary">
-              See the full gallery
-            </Link>
-          </div>
-          <RecentWork />
-        </div>
-      </section>
-
-      {/* ===== Areas + FAQ ===== */}
-      <section className="section pt-0" aria-labelledby="faq-title">
+      {/* ===== 9. Where we work (map) + FAQ ===== */}
+      <section className="section" aria-labelledby="faq-title">
         <div className="wrap grid gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
           <div className="grid content-start gap-5">
             <p className="label">Where we work</p>
@@ -346,7 +338,10 @@ export default function Home() {
               ))}
             </ul>
             <AreaChecker />
-            <Photo id="apartment-fix" elbow="bl" className="rv-img mt-4 aspect-[4/3]" sizes="(max-width: 860px) 100vw, 35vw" />
+            <MapEmbed className="mt-2 aspect-[4/3]" />
+            <Link href="/areas" className="font-semibold text-water">
+              All the areas we cover
+            </Link>
           </div>
           <div>
             <h2 id="faq-title" className="mb-6 text-[clamp(1.75rem,2vw+1rem,2.5rem)]">Questions people ask first</h2>
@@ -363,7 +358,8 @@ export default function Home() {
       </section>
 
       <FaqJsonLd />
-      <CtaBand />
+      {/* ===== 10. Final call band with the emergency steps ===== */}
+      <EmergencyCta />
     </>
   );
 }

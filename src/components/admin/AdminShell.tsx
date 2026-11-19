@@ -8,6 +8,7 @@ import { WS_URL } from "@/lib/api";
 import { useSocket, type SocketState } from "../chat/useSocket";
 import { ElbowMark } from "../Icons";
 import { api, auth, type AdminUser, type Conversation, type Lead, type Message } from "./client";
+import { currentSubscription, disablePush, enablePush, pushSupported, registerWorker } from "./push";
 
 type Event = Record<string, unknown> & { type: string };
 type Toast = { id: number; title: string; body?: string; href?: string; tone?: "info" | "ok" | "error" };
@@ -21,6 +22,8 @@ type Ctx = {
   unreadChats: number;
   newLeads: number;
   refreshCounts: () => void;
+  push: boolean | null;
+  togglePush: (v: boolean) => Promise<void>;
 };
 
 const AdminCtx = createContext<Ctx | null>(null);
@@ -77,7 +80,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
   const [newLeads, setNewLeads] = useState(0);
-  const [alerts, setAlerts] = useState({ sound: true, desktop: false });
+  const [alerts, setAlerts] = useState({ sound: true });
+  const [push, setPush] = useState<boolean | null>(null); // null = unknown / not supported
   const listeners = useRef(new Set<(e: Event) => void>());
   const pathRef = useRef(pathname);
 
@@ -124,20 +128,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     alertsRef.current = alerts;
   }, [alerts]);
 
-  const ping = useCallback(
-    (title: string, body: string, href: string) => {
-      const a = alertsRef.current;
-      if (a.sound) chime();
-      if (a.desktop && document.visibilityState !== "visible" && "Notification" in window && Notification.permission === "granted") {
-        const n = new Notification(title, { body, tag: href });
-        n.onclick = () => {
-          window.focus();
-          router.push(href);
-        };
-      }
-    },
-    [router],
-  );
+  // Push notifications (service worker) cover the phone and closed tabs; in the open dashboard we chime.
+  const ping = useCallback(() => {
+    if (alertsRef.current.sound) chime();
+  }, []);
+
+  // Register the dashboard's service worker and find out whether this device already gets push alerts.
+  useEffect(() => {
+    if (!session || !pushSupported()) return;
+    registerWorker()
+      .then(() => currentSubscription())
+      .then((sub) => setPush(Boolean(sub)))
+      .catch(() => setPush(false));
+  }, [session]);
 
   const { state: live, send } = useSocket(session ? `${WS_URL}/ws/admin/?token=${encodeURIComponent(session.token)}` : null, {
     onOpen: refreshCounts,
@@ -158,14 +161,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           const inInbox = pathRef.current === "/admin/inbox" && document.visibilityState === "visible";
           const text = m.body ? m.body.slice(0, 120) : "📷 Photo";
           if (!inInbox) toast({ title: "New chat message", body: text, href });
-          ping("New chat message", text, href);
+          ping();
         }
       }
       if (e.type === "lead_new") {
         const l = e.lead as Lead;
         setNewLeads((n) => n + 1);
         toast({ title: `New ${l.urgent ? "urgent " : ""}request from ${l.name}`, body: l.job || l.message.slice(0, 100), href: "/admin/leads" });
-        ping(`New request from ${l.name}`, l.job || l.message.slice(0, 100), "/admin/leads");
+        ping();
       }
       if (e.type === "lead_updated") refreshCounts();
       listeners.current.forEach((fn) => fn(e));
@@ -189,18 +192,31 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const setAlert = async (k: "sound" | "desktop", v: boolean) => {
-    if (k === "desktop" && v && "Notification" in window && Notification.permission !== "granted") {
-      const p = await Notification.requestPermission();
-      if (p !== "granted") {
-        toast({ title: "Desktop alerts are blocked", body: "Allow notifications for this site in your browser settings.", tone: "error" });
-        return;
-      }
-    }
-    const next = { ...alerts, [k]: v };
+  const setSound = (v: boolean) => {
+    const next = { ...alerts, sound: v };
     setAlerts(next);
     localStorage.setItem("northline-alerts", JSON.stringify(next));
   };
+
+  const togglePush = useCallback(
+    async (v: boolean) => {
+      if (!v) {
+        await disablePush();
+        setPush(false);
+        toast({ title: "Push alerts turned off on this device", tone: "ok" });
+        return;
+      }
+      const err = await enablePush().catch((e: Error) => e.message || "Couldn't turn on push alerts.");
+      if (err) {
+        toast({ title: "Push alerts aren't on", body: err, tone: "error" });
+        setPush(false);
+      } else {
+        setPush(true);
+        toast({ title: "Push alerts are on", body: "New chats and requests will reach this device, even when the dashboard is closed.", tone: "ok" });
+      }
+    },
+    [toast],
+  );
 
   const logout = async () => {
     await api("/api/auth/logout/", { method: "POST" }).catch(() => {});
@@ -212,7 +228,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return <div className="grid min-h-svh place-items-center text-muted">Loading…</div>;
   }
 
-  const ctx: Ctx = { user: session.user, live, send: sendFree, subscribe, toast, unreadChats, newLeads, refreshCounts };
+  const ctx: Ctx = { user: session.user, live, send: sendFree, subscribe, toast, unreadChats, newLeads, refreshCounts, push, togglePush };
 
   const badge = (href: string) => (href === "/admin/inbox" ? unreadChats : href === "/admin/leads" ? newLeads : 0);
 
@@ -269,8 +285,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <span className={`size-2 rounded-full ${live === "open" ? "bg-ok" : "bg-warn"}`} />
               {live === "open" ? "Live: visitors see you online" : "Reconnecting…"}
             </p>
-            <Toggle label="Sound alerts" checked={alerts.sound} onChange={(v) => setAlert("sound", v)} />
-            <Toggle label="Desktop alerts" checked={alerts.desktop} onChange={(v) => setAlert("desktop", v)} />
+            <Toggle label="Sound alerts" checked={alerts.sound} onChange={setSound} />
+            {push !== null && <Toggle label="Push alerts on this device" checked={push} onChange={togglePush} />}
             <div className="flex items-center justify-between border-t border-on-dark/12 pt-3">
               <span className="truncate text-on-dark">{session.user.name}</span>
               <button type="button" onClick={logout} className="cursor-pointer text-on-dark-muted underline underline-offset-4 hover:text-white">
@@ -282,10 +298,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         <main id="main" className="min-w-0 px-4 py-6 md:px-10 md:py-10">
           {children}
-          <div className="mt-12 flex justify-end md:hidden">
-            <button type="button" onClick={logout} className="btn btn-secondary">
-              Log out
-            </button>
+          <div className="admin-card mt-12 grid gap-3 p-5 text-[0.9375rem] md:hidden">
+            <ToggleLight label="Sound alerts" checked={alerts.sound} onChange={setSound} />
+            {push !== null && <ToggleLight label="Push alerts on this phone" checked={push} onChange={togglePush} />}
+            <div className="flex items-center justify-between border-t border-line pt-3">
+              <span className="truncate">{session.user.name}</span>
+              <button type="button" onClick={logout} className="btn btn-secondary min-h-10 px-4 text-[0.875rem]">
+                Log out
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -313,6 +334,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         ))}
       </ol>
     </AdminCtx.Provider>
+  );
+}
+
+function ToggleLight({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between">
+      {label}
+      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} className="switch switch-light" />
+    </label>
   );
 }
 

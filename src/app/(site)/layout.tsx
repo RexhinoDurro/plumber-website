@@ -5,6 +5,7 @@ import { MobileCallBar } from "@/components/MobileCallBar";
 import { BusinessJsonLd } from "@/components/JsonLd";
 import { Footer } from "@/components/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { BackToTop } from "@/components/BackToTop";
 
 /** Public website chrome. The dashboard under /admin has its own layout. */
 export default function SiteLayout({ children }: LayoutProps<"/">) {
@@ -21,6 +22,7 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       </ViewTransition>
       <Footer />
       <MobileCallBar />
+      <BackToTop />
       <ChatWidget />
     </div>
   );

@@ -23,6 +23,7 @@ export function Footer() {
         <FooterCol title="Company">
           <li><Link href="/emergency">Emergency help</Link></li>
           <li><Link href="/gallery">Our work</Link></li>
+          <li><Link href="/areas">Areas we cover</Link></li>
           <li><Link href="/about">About</Link></li>
           <li><Link href="/contact">Get a quote</Link></li>
         </FooterCol>

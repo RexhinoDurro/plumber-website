@@ -16,6 +16,15 @@ class Conversation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     visitor_name = models.CharField(max_length=80, blank=True, help_text="Empty until the visitor says it or staff add it")
     visitor_contact = models.CharField(max_length=120, blank=True, help_text="Phone or email, if given")
+
+    class Via(models.TextChoices):
+        NONE = "", "Not chosen"
+        SMS = "sms", "Text message"
+        WHATSAPP = "whatsapp", "WhatsApp"
+        EMAIL = "email", "Email"
+
+    contact_via = models.CharField(max_length=10, choices=Via.choices, blank=True, help_text="How the visitor wants replies when they're not on the site")
+    last_notified_at = models.DateTimeField(null=True, blank=True)
     visitor_token = models.CharField(max_length=64, default=new_token, editable=False)
     page_url = models.CharField(max_length=300, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.OPEN)
@@ -55,6 +64,8 @@ class Message(models.Model):
     attachment = models.ImageField(upload_to="chat/%Y/%m/", blank=True)
     # Lets the sender match the server's echo to the message it showed as "sending".
     client_id = models.CharField(max_length=40, blank=True)
+    # Sent automatically when nobody answered in time; doesn't count as a staff reply.
+    auto = models.BooleanField(default=False)
     delivered_at = models.DateTimeField(null=True, blank=True)
     read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

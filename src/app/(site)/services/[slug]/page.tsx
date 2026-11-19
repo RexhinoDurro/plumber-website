@@ -10,6 +10,16 @@ import { LoopVideo } from "@/components/LoopVideo";
 import { CtaBand } from "@/components/CtaBand";
 import { PhoneIcon } from "@/components/Icons";
 import { FaqJsonLd, ServiceJsonLd } from "@/components/JsonLd";
+import { QuickQuote } from "@/components/QuickQuote";
+import { ReviewStrip } from "@/components/ReviewStrip";
+
+const jobForService: Record<string, string> = {
+  emergency: "Leak or emergency",
+  drains: "Blocked drain",
+  bathrooms: "Bathroom",
+  kitchens: "Kitchen",
+  heating: "Heating or boiler",
+};
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -46,7 +56,14 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
           <li aria-current="page" className="font-semibold text-ink">{s.title}</li>
         </ol>
       </nav>
-      <PageHead image={s.photo} label={`${s.title} · ${site.city}`} title={s.short} lede={s.body} />
+      <PageHead
+        image={s.photo}
+        label={`${s.title} · ${site.city}`}
+        title={s.short}
+        lede={s.body}
+        aside={<QuickQuote defaultJob={jobForService[s.slug] ?? "Something else"} />}
+      />
+      <ReviewStrip />
 
       <div className="wrap grid gap-12 py-20 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
         <div className="grid content-start gap-12">

@@ -73,7 +73,8 @@ export function RequestsChart({ days }: { days: Day[] }) {
           {totals[hover]} requests · {days[hover].leads} forms, {days[hover].chats} chats
         </div>
       )}
-      <table className="sr-only">
+      <div className="sr-only">
+        <table>
         <caption>Requests per day</caption>
         <thead>
           <tr>
@@ -92,6 +93,7 @@ export function RequestsChart({ days }: { days: Day[] }) {
           ))}
         </tbody>
       </table>
+      </div>
     </figure>
   );
 }

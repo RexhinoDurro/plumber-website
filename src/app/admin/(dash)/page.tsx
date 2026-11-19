@@ -43,8 +43,13 @@ type Stats = {
     at: string;
   }[];
   demo_records: number;
+  chat_reply_seconds: number | null;
+  chat_reply_seconds_prev: number | null;
+  heatmap: number[][];
+  insights: { tone: "ok" | "warn" | "info"; text: string }[];
 };
 
+const fmtSecs = (v: number | null) => (v === null ? "–" : v < 90 ? `${v} s` : `${Math.round(v / 60)} min`);
 const fmtMin = (m: number | null) =>
   m === null
     ? "–"
@@ -53,7 +58,7 @@ const fmtMin = (m: number | null) =>
       : `${(m / 60).toFixed(1)} h`;
 
 export default function Overview() {
-  const { user } = useAdmin();
+  const { user, push, togglePush } = useAdmin();
   const [s, setS] = useState<Stats | null>(null);
   const [error, setError] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -121,6 +126,7 @@ export default function Overview() {
       {s && s.demo_records > 0 && (
         <DemoBanner count={s.demo_records} onCleared={load} />
       )}
+      {push === false && <PushPrompt onEnable={() => togglePush(true)} />}
 
       {/* The one number that matters first: who is still waiting for an answer. */}
       <section
@@ -207,6 +213,7 @@ export default function Overview() {
           />
           <Kpi
             label="Average first reply"
+            tip="Time from a new request or chat to your first answer (or moving the lead out of New). Automatic replies don't count."
             value={s ? fmtMin(s.response_week) : undefined}
             prev={s?.response_prev ?? undefined}
             current={s?.response_week ?? undefined}
@@ -214,10 +221,14 @@ export default function Overview() {
             prevLabel={s ? `${fmtMin(s.response_prev)} last week` : undefined}
           />
           <Kpi
-            label="Open chats"
-            value={s?.open_chats}
+            label="Chat reply speed"
+            tip="Median time from a visitor's first chat message to your first real reply, this week. People expect under a minute."
+            value={s ? fmtSecs(s.chat_reply_seconds) : undefined}
+            prev={s?.chat_reply_seconds_prev ?? undefined}
+            current={s?.chat_reply_seconds ?? undefined}
+            lowerIsBetter
+            prevLabel={s ? (s.chat_reply_seconds !== null && s.chat_reply_seconds <= 60 ? "inside the 1-minute goal" : "goal: under 1 min") : undefined}
             href="/admin/inbox"
-            note="in the inbox"
           />
         </div>
       </section>
@@ -229,6 +240,7 @@ export default function Overview() {
           ) : (
             <div className="h-56 animate-pulse rounded-sm bg-bg" />
           )}
+          {s && s.insights.length > 0 && <Insights items={s.insights} />}
         </Panel>
 
         <Panel
@@ -274,6 +286,10 @@ export default function Overview() {
           )}
         </Panel>
       </section>
+
+      <Panel title="When requests come in" sub="Last 90 days, by day and hour. Darker means busier: be reachable then.">
+        {s ? <Heatmap grid={s.heatmap} /> : <div className="h-48 animate-pulse rounded-sm bg-bg" />}
+      </Panel>
 
       <section className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[1.6fr_1fr]">
         <Panel title="Latest activity">
@@ -345,7 +361,9 @@ function Kpi({
   prevLabel,
   href,
   note,
+  tip,
 }: {
+  tip?: string;
   label: string;
   value?: number | string;
   prev?: number;
@@ -358,7 +376,14 @@ function Kpi({
   const body = (
     <div className="grid h-full content-between gap-3">
       <div>
-        <p className="text-[0.8125rem] font-semibold text-muted">{label}</p>
+        <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-muted">
+          {label}
+          {tip && (
+            <span className="tip grid size-4 cursor-help place-items-center rounded-full border border-muted/60 text-[0.625rem] font-bold" data-tip={tip} tabIndex={0} aria-label={tip}>
+              i
+            </span>
+          )}
+        </p>
         {value === undefined ? (
           <span className="mt-2 block h-9 w-14 animate-pulse rounded-sm bg-photo" />
         ) : (
@@ -410,6 +435,102 @@ function ContentRow({
           {cta}
         </Link>
       </dd>
+    </div>
+  );
+}
+
+function Insights({ items }: { items: { tone: "ok" | "warn" | "info"; text: string }[] }) {
+  const icon = { ok: "✓", warn: "!", info: "→" };
+  const color = { ok: "bg-ok/12 text-ok", warn: "bg-warn/12 text-warn", info: "bg-brand/10 text-brand" };
+  return (
+    <div className="mt-6 border-t border-line pt-5">
+      <h3 className="mb-3 text-[0.8125rem] font-semibold uppercase tracking-[0.05em] text-muted">What the numbers say</h3>
+      <ul className="grid gap-2.5">
+        {items.map((i) => (
+          <li key={i.text} className="flex gap-3 text-[0.9375rem]">
+            <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold ${color[i.tone]}`} aria-hidden="true">
+              {icon[i.tone]}
+            </span>
+            <span>{i.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/** 7 × 24 grid of requests by weekday and hour; one blue scale, labelled, with a table for screen readers. */
+function Heatmap({ grid }: { grid: number[][] }) {
+  const max = Math.max(1, ...grid.flat());
+  const total = grid.flat().reduce((a, b) => a + b, 0);
+  if (!total) return <p className="text-muted">Not enough requests yet. This fills in as chats and quote requests arrive.</p>;
+  const shade = (n: number) => (n === 0 ? "var(--color-bg)" : `color-mix(in oklch, var(--color-brand) ${Math.round(18 + (n / max) * 82)}%, white)`);
+  return (
+    <div className="-mt-8 overflow-x-auto pt-8">
+      <div className="grid min-w-[560px] grid-cols-[40px_repeat(24,minmax(0,1fr))] gap-[3px] text-[0.6875rem] text-muted" role="img" aria-label={`Requests by day and hour over 90 days, ${total} in total`}>
+        <span />
+        {Array.from({ length: 24 }, (_, h) => (
+          <span key={h} className="text-center tabular-nums">
+            {h % 3 === 0 ? String(h).padStart(2, "0") : ""}
+          </span>
+        ))}
+        {grid.map((row, d) => (
+          <div key={d} className="contents">
+            <span className="self-center font-semibold">{DAY_LABELS[d]}</span>
+            {row.map((n, h) => (
+              <span
+                key={h}
+                className="tip aspect-square min-h-4 rounded-[3px]"
+                style={{ background: shade(n) }}
+                data-tip={`${DAY_LABELS[d]} ${String(h).padStart(2, "0")}:00–${String(h + 1).padStart(2, "0")}:00 · ${n} ${n === 1 ? "request" : "requests"}`}
+                tabIndex={n ? 0 : -1}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-[0.75rem] text-muted">
+        Fewer
+        {[0.25, 0.5, 0.75, 1].map((f) => (
+          <span key={f} className="size-3 rounded-[2px]" style={{ background: shade(Math.ceil(f * max)) }} />
+        ))}
+        More
+      </div>
+      <div className="sr-only">
+        <table>
+        <caption>Requests by weekday and hour, last 90 days</caption>
+        <tbody>
+          {grid.map((row, d) => (
+            <tr key={d}>
+              <th scope="row">{DAY_LABELS[d]}</th>
+              <td>{row.map((n, h) => (n ? `${h}:00 ${n}` : null)).filter(Boolean).join(", ") || "none"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  );
+}
+
+function PushPrompt({ onEnable }: { onEnable: () => void }) {
+  return (
+    <div className="admin-card flex flex-wrap items-center gap-4 border-l-4 border-brand p-5">
+      <span className="grid size-10 place-items-center rounded-full bg-brand/10 text-brand" aria-hidden="true">
+        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15Z" strokeLinejoin="round" />
+          <path d="M10 20a2 2 0 0 0 4 0" />
+        </svg>
+      </span>
+      <p className="min-w-0 flex-1">
+        <b className="block">Get new chats and requests on this device</b>
+        <span className="text-[0.9375rem] text-muted">Push alerts arrive even when the dashboard is closed. On iPhone, add it to your Home Screen first.</span>
+      </p>
+      <button type="button" className="btn" onClick={onEnable}>
+        Turn on alerts
+      </button>
     </div>
   );
 }
