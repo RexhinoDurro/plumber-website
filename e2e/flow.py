@@ -73,9 +73,18 @@ with sync_playwright() as p:
     admin.locator("#reply").fill("One sec")
     expect(panel.locator("header").get_by_text("typing…")).to_be_visible(timeout=5000)
     admin.locator("#reply").fill("")
-    admin.get_by_role("button", name="Ask postcode").click()
+    # free text typed on the keyboard
+    admin.locator("#reply").type("Hi! Sorry to hear that. We can come Thursday between 9 and 11, does that work?")
+    admin.keyboard.press("Enter")
+    expect(panel.get_by_text("We can come Thursday between 9 and 11")).to_be_visible(timeout=8000)
+    # saved reply via the "/" shortcut: fills the box, can be edited, Enter sends
+    admin.locator("#reply").type("/post")
+    expect(admin.get_by_role("listbox", name="Saved replies")).to_be_visible()
+    admin.keyboard.press("Enter")
+    expect(admin.locator("#reply")).to_have_value(re.compile("What's your postcode"))
+    admin.keyboard.press("Enter")
     expect(panel.get_by_text("What's your postcode?")).to_be_visible(timeout=8000)
-    print("admin -> visitor ok")
+    print("admin -> visitor ok (typed + saved reply)")
 
     # visitor answers with a phone number -> picked up as their contact
     vis.locator("#chat-draft").fill("District XIII, 1134. Call me on +36 30 555 1234")
@@ -164,11 +173,13 @@ with sync_playwright() as p:
     m.screenshot(path=f"{SHOTS}/11-mobile-fab.png")
     m.get_by_role("button", name=re.compile("Message us")).click()
     m.screenshot(path=f"{SHOTS}/12-mobile-chat-empty.png")
-    m.get_by_role("button", name="I have a leak").click()
-    expect(m.locator("#chat-panel [role=log]").get_by_text("I have a leak")).to_be_visible(timeout=8000)
+    expect(m.locator("#chat-draft")).to_be_focused()  # keyboard opens straight away
+    m.locator("#chat-draft").type("Hello, water is coming through my bathroom ceiling. Is anyone free today?")
+    m.get_by_role("button", name="Send", exact=True).click()
+    expect(m.locator("#chat-panel [role=log]").get_by_text("water is coming through my bathroom ceiling")).to_be_visible(timeout=8000)
     time.sleep(0.8)
     m.screenshot(path=f"{SHOTS}/12-mobile-chat.png")
-    print("mobile suggestion chip sends ok")
+    print("mobile typing ok")
     m.goto(f"{BASE}/admin/login")
     m.fill("input[name=username]", "admin"); m.fill("input[name=password]", os.environ.get("ADMIN_PASSWORD", "plumber-demo-2026")); m.click("button[type=submit]")
     m.wait_for_url(f"{BASE}/admin"); time.sleep(1.2)

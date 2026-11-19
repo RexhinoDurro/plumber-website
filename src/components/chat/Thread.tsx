@@ -207,6 +207,8 @@ export function Composer({
   placeholder,
   id,
   autoFocus,
+  before,
+  onKeyDown,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -215,6 +217,10 @@ export function Composer({
   placeholder: string;
   id: string;
   autoFocus?: boolean;
+  /** Extra button(s) inside the box, left of the text (e.g. saved replies). */
+  before?: React.ReactNode;
+  /** Runs first; return true to stop the default (used by the "/" saved-reply menu). */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => boolean;
 }) {
   return (
     <form
@@ -225,6 +231,7 @@ export function Composer({
       }}
     >
       <div className="flex min-h-12 flex-1 items-end rounded-[24px] bg-surface shadow-[0_1px_0.5px_rgb(10_26_51/0.13)] ring-1 ring-line focus-within:ring-2 focus-within:ring-brand">
+        {before}
         <label htmlFor={id} className="sr-only">
           Message
         </label>
@@ -235,14 +242,21 @@ export function Composer({
           maxLength={2000}
           autoFocus={autoFocus}
           onChange={(e) => onChange(e.target.value)}
+          enterKeyHint="send"
+          autoComplete="off"
+          autoCapitalize="sentences"
+          spellCheck
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            if (onKeyDown?.(e)) return;
+            // Like WhatsApp: Enter sends on a computer; on a phone keyboard Enter makes a new line and you tap Send.
+            const touch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+            if (e.key === "Enter" && !e.shiftKey && !touch && !e.nativeEvent.isComposing) {
               e.preventDefault();
               onSend();
             }
           }}
           placeholder={placeholder}
-          className="max-h-32 min-h-12 flex-1 resize-none bg-transparent py-3 pl-4 text-[1rem] leading-snug [field-sizing:content] placeholder:text-muted focus:outline-none"
+          className={`max-h-32 min-h-12 flex-1 resize-none bg-transparent py-3 ${before ? "pl-1" : "pl-4"} text-[1rem] leading-snug [field-sizing:content] placeholder:text-muted focus:outline-none`}
         />
         {onPhoto && (
           <label className="grid size-12 shrink-0 cursor-pointer place-items-center rounded-full text-muted hover:text-brand" title="Send a photo">

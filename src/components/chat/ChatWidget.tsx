@@ -11,7 +11,6 @@ import { applyReceipt, Composer, lastSeen, newClientId, PhotoViewer, Thread, Typ
 type Session = { id: string; token: string };
 
 const STORE = "northline-chat";
-const suggestions = ["I have a leak", "My drain is blocked", "Boiler problem", "How much would it cost?"];
 
 const readSession = (): Session | null => {
   try {
@@ -177,7 +176,12 @@ export function ChatWidget() {
     setOpen(true);
     setUnread(0);
     if (session) send({ type: "read" }, false);
-    requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("textarea")?.focus());
+    // Focus inside the tap itself: phones only open the keyboard for a focus that happens during the tap.
+    const panel = panelRef.current;
+    if (panel) {
+      panel.hidden = false;
+      panel.querySelector<HTMLElement>("textarea")?.focus({ preventScroll: true });
+    }
   };
   const closePanel = () => {
     setOpen(false);
@@ -354,7 +358,7 @@ export function ChatWidget() {
           </p>
           <div className="chat-bubble mt-2.5 flex">
             <div className="bubble-tail-in max-w-[82%] rounded-[10px] rounded-tl-[2px] bg-surface px-2.5 py-1.5 text-[0.9375rem] leading-snug shadow-[0_1px_0.5px_rgb(10_26_51/0.13)]">
-              Hi 👋 How can we help? Tell us what&apos;s going on.
+              Hi 👋 How can we help? Type your message below. You can also send a photo.
             </div>
           </div>
           <Thread messages={messages} me="visitor" theirName={site.name} onImage={setViewing} />
@@ -372,26 +376,12 @@ export function ChatWidget() {
         </div>
 
         <div className="bg-[#e9eff6] px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-1 md:px-3 md:pb-3">
-          {!hasVisitorMsg && (
-            <div className="mb-2 flex gap-1.5 overflow-x-auto pb-0.5" role="group" aria-label="Quick messages">
-              {suggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => sendText(s)}
-                  className="shrink-0 cursor-pointer rounded-full bg-surface px-3 py-1.5 text-[0.8125rem] font-semibold text-water shadow-[0_1px_0.5px_rgb(10_26_51/0.13)] hover:bg-brand hover:text-white"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
           {notice && (
             <p role="alert" className="mb-2 rounded-sm bg-surface px-3 py-2 text-[0.8125rem] font-medium text-danger">
               {notice}
             </p>
           )}
-          <Composer id="chat-draft" value={draft} onChange={onDraftChange} onSend={() => sendText(draft)} onPhoto={sendPhoto} placeholder="Message" />
+          <Composer id="chat-draft" value={draft} onChange={onDraftChange} onSend={() => sendText(draft)} onPhoto={sendPhoto} placeholder="Type a message" />
         </div>
       </div>
       <PhotoViewer src={viewing} onClose={() => setViewing(null)} />

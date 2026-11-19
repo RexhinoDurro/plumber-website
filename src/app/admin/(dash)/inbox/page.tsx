@@ -49,6 +49,7 @@ export default function InboxPage() {
   const [typing, setTyping] = useState<Record<string, number>>({});
   const [fresh, setFresh] = useState<Set<string>>(new Set());
   const [viewing, setViewing] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const threadRef = useRef<HTMLDivElement>(null);
   const lastTyping = useRef(0);
@@ -350,22 +351,49 @@ export default function InboxPage() {
               </div>
 
               <div className="bg-[#e9eff6] px-3 pb-3 pt-2">
-                {replies.length > 0 && (
-                  <div className="mb-2 flex gap-1.5 overflow-x-auto pb-0.5" aria-label="Quick replies">
-                    {replies.map((r) => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        title={r.text}
-                        onClick={() => sendText(r.text)}
-                        className="shrink-0 cursor-pointer rounded-full bg-surface px-3 py-1.5 text-[0.8125rem] font-semibold text-water shadow-[0_1px_0.5px_rgb(10_26_51/0.13)] hover:bg-brand hover:text-white"
-                      >
-                        {r.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <Composer id="reply" value={draft} onChange={onDraft} onSend={() => sendText()} onPhoto={sendPhoto} placeholder={`Message ${detail.display_name.split(" ")[0]}`} />
+                <SavedReplies
+                  replies={replies}
+                  draft={draft}
+                  open={pickerOpen}
+                  setOpen={setPickerOpen}
+                  onPick={(text) => {
+                    setDraft(text);
+                    setPickerOpen(false);
+                    requestAnimationFrame(() => {
+                      const el = document.getElementById("reply") as HTMLTextAreaElement | null;
+                      el?.focus();
+                      el?.setSelectionRange(text.length, text.length);
+                    });
+                  }}
+                >
+                  {(keys) => (
+                    <Composer
+                      id="reply"
+                      value={draft}
+                      onChange={onDraft}
+                      onSend={() => sendText()}
+                      onPhoto={sendPhoto}
+                      onKeyDown={keys}
+                      placeholder={`Message ${detail.display_name.split(" ")[0]} (type / for saved replies)`}
+                      before={
+                        replies.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setPickerOpen((o) => !o)}
+                            aria-expanded={pickerOpen}
+                            aria-label="Saved replies"
+                            title="Saved replies"
+                            className="grid size-12 shrink-0 cursor-pointer place-items-center rounded-full text-muted hover:text-brand"
+                          >
+                            <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M13 3 5 13.5h6L10 21l8-10.5h-6Z" />
+                            </svg>
+                          </button>
+                        )
+                      }
+                    />
+                  )}
+                </SavedReplies>
               </div>
             </>
           )}
@@ -437,5 +465,75 @@ function InlineField({ label, value, placeholder, onSave }: { label: string; val
         className="rounded-sm border border-transparent bg-bg px-2 py-1.5 hover:border-line focus:border-brand focus:bg-surface focus:outline-none"
       />
     </label>
+  );
+}
+
+/**
+ * Saved replies, WhatsApp Business style: open with the ⚡ button or type "/" in the box.
+ * Picking one puts the text in the box so you can change it before sending.
+ */
+function SavedReplies({
+  replies,
+  draft,
+  open,
+  setOpen,
+  onPick,
+  children,
+}: {
+  replies: QuickReply[];
+  draft: string;
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  onPick: (text: string) => void;
+  children: (onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => boolean) => React.ReactNode;
+}) {
+  const [active, setActive] = useState(0);
+  const slash = draft.startsWith("/") && !draft.includes(" ") ? draft.slice(1).toLowerCase() : null;
+  const shown = slash !== null ? replies.filter((r) => `${r.label} ${r.text}`.toLowerCase().includes(slash)) : replies;
+  const visible = (open || slash !== null) && shown.length > 0;
+  const idx = Math.min(active, shown.length - 1);
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!visible) return false;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => (i + (e.key === "ArrowDown" ? 1 : -1) + shown.length) % shown.length);
+      return true;
+    }
+    if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      onPick(shown[idx].text);
+      setActive(0);
+      return true;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      return true;
+    }
+    return false;
+  };
+
+  return (
+    <div className="relative">
+      {visible && (
+        <ul role="listbox" aria-label="Saved replies" className="absolute inset-x-0 bottom-full z-10 mb-2 max-h-72 overflow-y-auto rounded-md bg-surface p-1.5 shadow-lift ring-1 ring-line">
+          {shown.map((r, i) => (
+            <li key={r.id} role="option" aria-selected={i === idx}>
+              <button
+                type="button"
+                onMouseEnter={() => setActive(i)}
+                onClick={() => onPick(r.text)}
+                className={`grid w-full cursor-pointer gap-0.5 rounded-sm px-3 py-2 text-left ${i === idx ? "bg-[#eef3fb]" : ""}`}
+              >
+                <span className="text-[0.8125rem] font-semibold text-water">/{r.label.toLowerCase().replace(/\s+/g, "-")}</span>
+                <span className="line-clamp-2 text-[0.875rem] text-ink">{r.text}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {children(onKeyDown)}
+    </div>
   );
 }
