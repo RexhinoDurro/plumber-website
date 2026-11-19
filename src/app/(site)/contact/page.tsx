@@ -14,7 +14,7 @@ export default function ContactPage() {
   return (
     <>
       <PageHead
-        image="kitchen-sink-leak"
+        video="sinkLeak"
         label="Contact"
         title="Tell us what's wrong. We'll tell you what it costs."
         lede="Leaking now? Call, it's quicker. For everything else, the form below gets you a fixed price."

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { hero, photos, showcase, videos } from "@/content/media";
+import { clips, hero, photos, showcase, videos } from "@/content/media";
 
 export const metadata: Metadata = {
   title: "Photo & video credits",
@@ -14,9 +14,10 @@ export default function CreditsPage() {
     { what: "Home page video", credit: hero.credit, url: hero.creditUrl },
     { what: "“Watch a job” video", credit: showcase.credit, url: showcase.creditUrl },
     ...Object.values(videos).map((v) => ({ what: "Background video", credit: v.credit, url: v.creditUrl })),
+    ...Object.values(clips).map((v) => ({ what: "Page video", credit: v.credit, url: v.creditUrl })),
     ...photos.map((p) => ({ what: p.title, credit: p.credit, url: p.creditUrl })),
   ];
-  const unique = items.filter((x, i) => items.findIndex((y) => y.url === x.url && y.what === x.what) === i);
+  const unique = items.filter((x, i) => items.findIndex((y) => y.url === x.url) === i);
   return (
     <section className="section">
       <div className="wrap grid max-w-[72ch] gap-6">

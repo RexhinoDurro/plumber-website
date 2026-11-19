@@ -26,7 +26,7 @@ export default function BuildingsPage() {
   return (
     <>
       <PageHead
-        image="apartment-fix"
+        video="waterTowers"
         label="For building managers, supers & landlords"
         title="Plumbing that gets past the front desk."
         lede={`Co-ops, condos and rental buildings across ${site.areas.join(", ")}. Insurance paperwork done before we arrive, and work that follows your building's rules.`}

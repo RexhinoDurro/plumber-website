@@ -61,10 +61,47 @@ export const videos = {
   },
 } as const;
 
-export type BgVideo = (typeof videos)[keyof typeof videos];
+export type BgVideo = { src: string; poster: string; credit: string; creditUrl: string };
+
+export type Clip = { src: string; poster: string; credit: string; creditUrl: string };
+const clip = (id: number, file: string, posterSlug: string, credit: string, page: string): Clip => ({
+  src: `https://videos.pexels.com/video-files/${id}/${file}`,
+  poster: still(id, posterSlug),
+  credit,
+  creditUrl: `https://www.pexels.com/video/${page}-${id}/`,
+});
+
+/**
+ * Background videos for the top of each page, picked to match that page's topic (Pexels, free to use).
+ * They play muted and looped, and are skipped on data saver, slow connections and "reduce motion".
+ */
+export const clips = {
+  waterTowers: clip(39776403, "16962288_640_360_24fps.mp4", "pexels-photo-39776403", "AP Vibes", "urban-rooftop-view-with-water-towers"),
+  nycSkyline: clip(11422401, "11422401-hd_1920_1080_60fps.mp4", "pexels-photo-11422401", "Djordje Vanjek", "skyscrapers-in-new-york"),
+  pipeDrip: clip(5571839, "5571839-hd_1280_720_24fps.mp4", "pexels-photo-5571839", "Monsieur Sylvain", "water-dripping-on-welded-metal-pipes"),
+  faucetRepair: clip(9890448, "9890448-hd_1280_720_30fps.mp4", "leak-plumbing-repair-tools-9890448", "Alejandro Torres", "close-up-of-plumber-repairing-faucet"),
+  dripRepair: clip(9890452, "9890452-hd_1920_1080_30fps.mp4", "leak-plumbing-repair-tools-9890452", "Alejandro Torres", "close-up-of-person-fixing-dripping-faucet"),
+  gloves: clip(9890453, "9890453-hd_1920_1080_30fps.mp4", "leak-plumbing-repair-tools-9890453", "Alejandro Torres", "plumbing-tools-and-plumber-putting-on-gloves"),
+  sinkLeak: clip(32711364, "13945105_640_360_30fps.mp4", "pexels-photo-32711364", "Zulfugar Karimov", "leakage-problem-in-modern-kitchen-sink"),
+  sinkDrain: clip(4064321, "4064321-hd_1920_1080_25fps.mp4", "pexels-photo-4064321", "Rob Cot", "kitchen-sink-cooking-water-flow-basin-metal-bubble"),
+  bathroomWater: clip(14495995, "14495995-hd_1920_1080_30fps.mp4", "pexels-photo-14495995", "Curtis Adams", "flowing-water-in-bathroom"),
+  kitchenFaucet: clip(6356430, "6356430-hd_1280_720_24fps.mp4", "pexels-photo-6356430", "Curtis Adams", "water-flowing-from-a-faucet"),
+  gasStove: clip(8093760, "8093760-hd_1920_1080_25fps.mp4", "blue-fire-fire-gas-gas-stove-8093760", "Etoile", "close-up-video-of-a-gas-stove"),
+} as const;
+
+export type ClipName = keyof typeof clips;
 
 /** Stock photos (Pexels) used around the site. Not shown in the gallery. */
 export const photos: Photo[] = [
+  {
+    id: "gas-stove",
+    src: still(8093760, "blue-fire-fire-gas-gas-stove-8093760"),
+    alt: "Blue flame on a gas stove burner",
+    category: "Pipework",
+    title: "Gas stove burner",
+    credit: "Etoile",
+    creditUrl: "https://www.pexels.com/video/close-up-video-of-a-gas-stove-8093760/",
+  },
   {
     id: "steel-pipes",
     src: photo(6419128, "pexels-photo-6419128.jpeg"),

@@ -17,7 +17,7 @@ export default function AreasPage() {
   return (
     <>
       <PageHead
-        image="apartment-fix"
+        video="nycSkyline"
         label="Areas we cover"
         title={`Plumbers across ${site.city} and nearby.`}
         lede={`Check your area below. For emergencies we're usually with you within ${site.emergencyArrival}, and we'll give you an honest arrival time on the phone.`}

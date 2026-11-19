@@ -1,3 +1,4 @@
+import type { ClipName } from "./media";
 export type Service = {
   slug: string;
   title: string;
@@ -5,6 +6,8 @@ export type Service = {
   body: string;
   jobs: string[];
   photo: string; // id from media.ts
+  /** Background video for the top of the service page (from `clips` in media.ts), matching the service. */
+  clip?: ClipName;
   video?: string; // id from media.ts with a video
   price: string; // TODO: real typical range, e.g. "$90–$180"
   priceNote: string;
@@ -19,6 +22,7 @@ export const services: Service[] = [
     body: "When water is going where it shouldn't, you need someone who answers the phone. We tell you how to stop the water while we're on our way, then find the cause and fix it properly. No temporary patch that fails next week.",
     jobs: ["Burst and leaking pipes", "Overflowing toilets and toilet tanks", "Leaks through ceilings", "No water or low pressure"],
     photo: "faucet-repair",
+    clip: "dripRepair",
     price: "[from $—] call-out",
     priceNote: "Most leaks are fixed in one visit; parts extra.",
     faqs: [
@@ -34,6 +38,7 @@ export const services: Service[] = [
     body: "We clear the blockage and tell you why it happened, whether that's grease, roots or a badly laid pipe, so it doesn't keep coming back.",
     jobs: ["Kitchen and bathroom sinks", "Toilets and showers", "Outside gullies and drains", "Slow-draining pipes"],
     photo: "doing-plumbing",
+    clip: "sinkDrain",
     price: "[$— to $—]",
     priceNote: "Depends on access and whether a camera inspection is needed.",
     faqs: [
@@ -48,6 +53,7 @@ export const services: Service[] = [
     body: "We plan the pipework before the tiles go on, so nothing has to be ripped out later. You get a written plan, a fixed price and one person to call.",
     jobs: ["Full bathroom refits", "Showers and shower valves", "Toilets, basins and baths", "Wet rooms"],
     photo: "bathroom",
+    clip: "bathroomWater",
     price: "[from $—] full refit",
     priceNote: "Fixed price after a free survey. Tiling and fittings quoted separately.",
     faqs: [
@@ -63,6 +69,7 @@ export const services: Service[] = [
     body: "Whether it's a new faucet or the plumbing for a whole new kitchen, we fit it neatly and test every joint before we leave.",
     jobs: ["Sinks and faucets", "Dishwasher and washing machine connections", "Water filters", "Waste and trap replacement"],
     photo: "kitchen-tap",
+    clip: "kitchenFaucet",
     price: "[from $—] per fitting",
     priceNote: "Most connections take under two hours.",
     faqs: [
@@ -92,7 +99,8 @@ export const services: Service[] = [
     short: "Gas leaks made safe, new gas lines, and the Local Law 152 inspections NYC buildings need every four years.",
     body: "Local Law 152 requires most NYC buildings to have their gas piping inspected by a Licensed Master Plumber every four years. We do the inspection, fix what's needed and file the certification with the DOB. Smell gas right now? Leave the building and call 911 or Con Edison first.",
     jobs: ["Local Law 152 gas piping inspections", "Gas leak repairs and pressure tests", "New gas lines for stoves and dryers", "DOB filings and sign-offs"],
-    photo: "steel-pipes",
+    photo: "gas-stove",
+    clip: "gasStove",
     price: "[from $—] LL152 inspection",
     priceNote: "Priced by building size and number of meters. Repairs quoted after the inspection.",
     faqs: [

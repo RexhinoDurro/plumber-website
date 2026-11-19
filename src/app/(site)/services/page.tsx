@@ -18,7 +18,7 @@ export default function ServicesPage() {
   return (
     <>
       <PageHead
-        image="steel-pipes"
+        video="faucetRepair"
         label="Services"
         title="Everything water and heating in your home."
         lede="Every job starts the same way: we find the cause, explain it, and give you one fixed price before any work begins."

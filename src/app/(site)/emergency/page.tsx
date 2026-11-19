@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/content/site";
 import { problems } from "@/content/problems";
-import { videos } from "@/content/media";
+import { clips } from "@/content/media";
 import { VideoBand } from "@/components/VideoBand";
 import { PhoneIcon } from "@/components/Icons";
 
@@ -15,7 +15,7 @@ export default function EmergencyPage() {
   const urgent = problems.filter((p) => p.urgency !== "Plan ahead");
   return (
     <>
-      <VideoBand video={videos.drip} align="full" labelledBy="em-title">
+      <VideoBand video={clips.pipeDrip} align="full" labelledBy="em-title">
         <div className="wrap grid gap-8 py-24 md:py-32">
           <p className="label">Emergency plumber · {site.city}</p>
           <h1 id="em-title" className="max-w-[14ch] text-[clamp(2.6rem,5vw+0.5rem,5rem)]">Water where it shouldn&apos;t be? Call now.</h1>

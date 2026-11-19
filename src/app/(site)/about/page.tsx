@@ -20,7 +20,7 @@ const values = [
 export default function AboutPage() {
   return (
     <>
-      <PageHead label="About us" title="A local firm that turns up and owns the job." lede={site.promise} image="apartment-fix" />
+      <PageHead label="About us" title="A local firm that turns up and owns the job." lede={site.promise} video="gloves" />
       <div className="wrap grid items-start gap-12 pb-24 pt-20 md:grid-cols-[1.1fr_0.9fr] md:gap-16">
         <div className="grid gap-6">
           <p className="placeholder-note">

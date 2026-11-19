@@ -1,26 +1,36 @@
 import Image from "next/image";
-import { byId } from "@/content/media";
+import { byId, clips, type ClipName } from "@/content/media";
+import { HeroVideo } from "./HeroVideo";
 
-/** Inner-page header: a full-bleed job photo under an ink overlay, with the elbow corner on the bottom right. */
+/**
+ * Inner-page header: a full-bleed photo, or a muted looping video that matches the page, under an ink overlay,
+ * with the elbow corner on the bottom right. The video's still frame loads first (and stays when video is skipped).
+ */
 export function PageHead({
   label,
   title,
   lede,
   image,
+  video,
   aside,
 }: {
   label: string;
   title: string;
   lede: string;
-  image: string;
+  /** A photo id from media.ts. Used when there's no video. */
+  image?: string;
+  /** A background video from `clips` in media.ts, matching the page's topic. */
+  video?: ClipName;
   /** Optional panel on the right, e.g. a quote form, so it sits above the fold. */
   aside?: React.ReactNode;
 }) {
-  const p = byId(image);
+  const clip = video ? clips[video] : null;
+  const src = clip ? clip.poster : byId(image ?? "steel-pipes").src;
   return (
     <section className="wrap pt-6">
       <div className="on-dark grain relative isolate overflow-hidden rounded-md rounded-br-elbow bg-ink text-on-dark">
-        <Image src={p.src} alt="" fill priority sizes="100vw" className="drift object-cover opacity-55" />
+        <Image src={src} alt="" fill priority sizes="100vw" className="drift object-cover opacity-55" />
+        {clip && <HeroVideo src={clip.src} poster={clip.poster} className="media-bg object-cover opacity-55" />}
         <div
           className="media-shade"
           style={{ background: "linear-gradient(to right, rgb(10 26 51 / .94), rgb(10 26 51 / .7) 55%, rgb(10 26 51 / .35))" }}

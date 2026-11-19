@@ -59,6 +59,7 @@ export default async function ServicePage({ params }: PageProps<"/services/[slug
       </nav>
       <PageHead
         image={s.photo}
+        video={s.clip}
         label={`${s.title} · ${site.city}`}
         title={s.short}
         lede={s.body}
