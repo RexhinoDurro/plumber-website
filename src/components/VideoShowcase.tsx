@@ -22,10 +22,6 @@ export function VideoShowcase({ bare = false }: { bare?: boolean }) {
             No staged smiles: a real under-basin repair, from finding the leak to testing the fix. Twenty seconds, no sound
             needed.
           </p>
-          <p className="placeholder-note max-w-[52ch]">
-            Placeholder clip from Pexels. A 30-second phone video of one of your own jobs will build more trust than any
-            stock footage.
-          </p>
         </div>
 
         <div className="relative aspect-video overflow-hidden rounded-md rounded-tr-elbow bg-ink shadow-lift">
@@ -60,9 +56,6 @@ export function VideoShowcase({ bare = false }: { bare?: boolean }) {
           )}
         </div>
       </div>
-      <p className={`${bare ? "" : "wrap "}mt-3 text-right text-xs text-muted`}>
-        Video: <a href={showcase.creditUrl}>{showcase.credit} / Pexels</a>
-      </p>
     </Wrap>
   );
 }

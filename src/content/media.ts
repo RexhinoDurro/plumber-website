@@ -2,8 +2,8 @@
  * Two kinds of media:
  * - `work`: photos of OUR OWN jobs (in /public/work). These are the gallery and the home page "Recent work".
  * - everything else (hero video, page photos, video bands): free Pexels stock, used under the Pexels License
- *   (https://www.pexels.com/license/): free for commercial use, editing allowed, credit not required (we credit anyway).
- *   Never presented as our own jobs. Swap any of them for your own photos whenever you like.
+ *   (https://www.pexels.com/license/): free for commercial use, editing allowed, no credit required, so none is
+ *   shown on the site. The credit fields below are only a record of where each one came from. Never presented as our own jobs. Swap any of them for your own photos whenever you like.
  */
 export type Category = "Repairs" | "Bathrooms" | "Kitchens" | "Heating" | "Pipework";
 

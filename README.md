@@ -85,7 +85,7 @@ Everything business-specific is in **`src/content/`**:
 | `site.ts` | Business name, time zone, opening hours (for the live status), guarantees, accreditations, phone, email, address, hours, areas, licence, insurance, founding year. Reviews (`testimonials`): **add real reviews only**. FAQ answers marked TODO. |
 | `services.ts` | Services, descriptions, included jobs and **typical price ranges** (placeholders). Add your heating certifications. |
 | `problems.ts` | The "What's happening?" finder: symptoms, urgency, safe first step, likely causes, linked service. |
-| `media.ts` | `work`: photos of our own jobs (files in `public/work`), used by the gallery and the home page "Recent work". Everything else (hero video, page photos, video bands, "Watch a job") is free Pexels stock under the Pexels License, credited on `/credits`; swap any of it for your own photos when ready. |
+| `media.ts` | `work`: photos of our own jobs (files in `public/work`), used by the gallery and the home page "Recent work". Everything else (hero video, page photos, video bands, "Watch a job") is free Pexels stock under the Pexels License (commercial use allowed, no credit required, so none is shown); swap any of it for your own photos when ready. |
 
 Search the code for `TODO` and `[` to find every placeholder.
 
@@ -110,4 +110,4 @@ See **`DESIGN.md`** for the design system: colors and their roles, type, spacing
 
 ## Credits
 
-Photos and videos from [Pexels](https://www.pexels.com/license/); individual credits are on `/gallery#credits`.
+Gallery photos are our own jobs. Other photos and videos are from [Pexels](https://www.pexels.com/license/), which allows commercial use without credit; where each came from is recorded in `src/content/media.ts`.

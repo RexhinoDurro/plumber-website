@@ -36,12 +36,6 @@ export function VideoBand({
         }}
       />
       <div className="relative z-[2]">{children}</div>
-      <a
-        href={video.creditUrl}
-        className="absolute bottom-3 right-4 z-[2] text-xs text-on-dark-muted/80 no-underline hover:underline"
-      >
-        Video: {video.credit} / Pexels
-      </a>
     </section>
   );
 }
