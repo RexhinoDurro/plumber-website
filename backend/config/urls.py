@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/chat/presence/", chat.chat_presence),
     path("api/chat/start/", chat.start_chat),
     path("api/chat/<uuid:pk>/messages/", chat.visitor_messages),
+    path("api/chat/<uuid:pk>/photo/", chat.visitor_photo),
     # Staff (dashboard)
     path("api/auth/login/", accounts.login),
     path("api/auth/logout/", accounts.logout),

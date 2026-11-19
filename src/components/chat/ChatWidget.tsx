@@ -6,12 +6,12 @@ import { site } from "@/content/site";
 import { API_URL, WS_URL } from "@/lib/api";
 import { ElbowMark } from "../Icons";
 import { useSocket } from "./useSocket";
+import { applyReceipt, Composer, lastSeen, newClientId, PhotoViewer, Thread, TypingBubble, upsert, type ChatMsg } from "./Thread";
 
-type Msg = { id: number; sender: "visitor" | "admin"; body: string; created_at: string };
-type Session = { id: string; token: string; name: string };
+type Session = { id: string; token: string };
 
 const STORE = "northline-chat";
-const starters = ["Leak or burst pipe", "Blocked drain", "Boiler or heating", "Price for a job"];
+const suggestions = ["I have a leak", "My drain is blocked", "Boiler problem", "How much would it cost?"];
 
 const readSession = (): Session | null => {
   try {
@@ -28,25 +28,47 @@ const writeSession = (s: Session | null) => {
     /* private mode: chat still works for this page view */
   }
 };
-const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-/** Floating "Message us" button and live chat panel. Talks to the Django backend over a WebSocket. */
+/** A short soft "pop" for incoming replies, made with WebAudio. */
+function pop() {
+  try {
+    const ctx = new AudioContext();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(520, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+    o.connect(g).connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 0.2);
+    setTimeout(() => ctx.close(), 400);
+  } catch {}
+}
+
+/**
+ * Floating "Message us" button and a WhatsApp-style chat with the business.
+ * No form: the first message opens the conversation. Messages, photos, typing,
+ * delivered/read ticks and online/last-seen all travel over one WebSocket.
+ */
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [online, setOnline] = useState<boolean | null>(null);
-  const [status, setStatus] = useState<"open" | "closed">("open");
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [biz, setBiz] = useState<{ online: boolean; last_seen: string | null } | null>(null);
+  const [closed, setClosed] = useState(false);
   const [unread, setUnread] = useState(0);
-  const [adminTyping, setAdminTyping] = useState(false);
+  const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
-  const [error, setError] = useState("");
-  const [starting, setStarting] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [viewing, setViewing] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const lastTypingSent = useRef(0);
+  const starting = useRef<Promise<Session | null> | null>(null);
   const openRef = useRef(open);
   const titleId = useId();
   const pathname = usePathname();
@@ -55,28 +77,24 @@ export function ChatWidget() {
     openRef.current = open;
   }, [open]);
 
-  // Restore an earlier conversation, or just ask whether anyone is online.
+  // Restore an earlier conversation, or just ask whether anyone is in.
   useEffect(() => {
     const s = readSession();
     const ctrl = new AbortController();
-    if (s) {
-      fetch(`${API_URL}/api/chat/${s.id}/messages/?token=${encodeURIComponent(s.token)}`, { signal: ctrl.signal })
-        .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-        .then((d) => {
+    const url = s ? `${API_URL}/api/chat/${s.id}/messages/?token=${encodeURIComponent(s.token)}` : `${API_URL}/api/chat/presence/`;
+    fetch(url, { signal: ctrl.signal })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d) => {
+        setBiz({ online: d.online, last_seen: d.last_seen });
+        if (s) {
           setSession(s);
           setMessages(d.messages);
-          setOnline(d.online);
-          setStatus(d.status);
-        })
-        .catch((e) => {
-          if (e === 404) writeSession(null);
-        });
-    } else {
-      fetch(`${API_URL}/api/chat/presence/`, { signal: ctrl.signal })
-        .then((r) => r.json())
-        .then((d) => setOnline(d.online))
-        .catch(() => setOnline(null));
-    }
+          setClosed(d.status === "closed");
+        }
+      })
+      .catch((e) => {
+        if (e === 404) writeSession(null);
+      });
     return () => ctrl.abort();
   }, []);
 
@@ -84,37 +102,53 @@ export function ChatWidget() {
     if (!session) return;
     fetch(`${API_URL}/api/chat/${session.id}/messages/?token=${encodeURIComponent(session.token)}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && (setMessages(d.messages), setStatus(d.status)))
+      .then((d) => {
+        if (!d) return;
+        const server = d.messages as ChatMsg[];
+        // take the server's copy, keep anything still sending
+        setMessages((list) => [...server, ...list.filter((m) => m.pending && !server.some((x) => x.client_id === m.client_id))]);
+        setClosed(d.status === "closed");
+        setBiz({ online: d.online, last_seen: d.last_seen });
+      })
       .catch(() => {});
   }, [session]);
+
+  const seen = () => openRef.current && document.visibilityState === "visible";
 
   const { state: sockState, send } = useSocket(
     session ? `${WS_URL}/ws/chat/${session.id}/?token=${encodeURIComponent(session.token)}` : null,
     {
-      onOpen: resync,
+      onOpen: () => {
+        resync();
+        if (seen()) send({ type: "read" }, false);
+      },
       onAuthFail: () => {
         writeSession(null);
         setSession(null);
         setMessages([]);
       },
       onMessage: (d) => {
-        if (d.type === "hello") {
-          setOnline(Boolean(d.online));
-          setStatus(d.status === "closed" ? "closed" : "open");
-        } else if (d.type === "presence") setOnline(Boolean(d.online));
-        else if (d.type === "status") setStatus(d.status === "closed" ? "closed" : "open");
+        if (d.type === "hello" || d.type === "presence") {
+          setBiz({ online: Boolean(d.online), last_seen: (d.last_seen as string) ?? null });
+          if (d.type === "hello") setClosed(d.status === "closed");
+        } else if (d.type === "status") setClosed(d.status === "closed");
         else if (d.type === "typing" && d.who === "admin") {
-          setAdminTyping(true);
+          setTyping(true);
           clearTimeout(typingTimer.current);
-          typingTimer.current = setTimeout(() => setAdminTyping(false), 3500);
+          typingTimer.current = setTimeout(() => setTyping(false), 3500);
+        } else if (d.type === "receipt") {
+          setMessages((l) => applyReceipt(l, String(d.sender), d.status as "delivered" | "read", String(d.at)));
         } else if (d.type === "message") {
-          const m = d.message as Msg;
-          setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, m]));
+          const m = d.message as ChatMsg;
+          setMessages((list) => upsert(list, m));
           if (m.sender === "admin") {
-            setAdminTyping(false);
-            setStatus("open");
-            if (openRef.current && document.visibilityState === "visible") send({ type: "read" }, false);
-            else setUnread((n) => n + 1);
+            setTyping(false);
+            setClosed(false);
+            if (seen()) send({ type: "read" }, false);
+            else {
+              setUnread((n) => n + 1);
+              pop();
+            }
           }
         }
       },
@@ -125,88 +159,118 @@ export function ChatWidget() {
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages.length, adminTyping, open]);
+  }, [messages.length, typing, open]);
+
+  // Coming back to the tab with the chat open counts as reading it.
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible" && openRef.current && session) {
+        send({ type: "read" }, false);
+        setUnread(0);
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [session, send]);
 
   const openPanel = () => {
     setOpen(true);
     setUnread(0);
     if (session) send({ type: "read" }, false);
-    requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("textarea, input")?.focus());
+    requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("textarea")?.focus());
   };
   const closePanel = () => {
     setOpen(false);
     buttonRef.current?.focus();
   };
 
-  async function start(form: FormData) {
-    const name = String(form.get("name") ?? "").trim();
-    const message = String(form.get("message") ?? "").trim();
-    if (name.length < 2) return setError("Add your name so we know who we're talking to.");
-    if (!message) return setError("Write a short message first.");
-    setError("");
-    setStarting(true);
-    try {
-      const r = await fetch(`${API_URL}/api/chat/start/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          message,
-          contact: String(form.get("contact") ?? "").trim(),
-          page: pathname,
-          website: String(form.get("website") ?? ""),
-        }),
+  /** The first message (or photo) creates the conversation. */
+  const ensureSession = (first?: { body: string; client_id: string }) => {
+    if (session) return Promise.resolve(session);
+    if (starting.current) return starting.current;
+    starting.current = fetch(`${API_URL}/api/chat/start/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: first?.body ?? "", client_id: first?.client_id ?? "", page: pathname }),
+    })
+      .then(async (r) => {
+        if (r.status === 429) throw new Error("rate");
+        if (!r.ok) throw new Error("bad");
+        const d = await r.json();
+        const s = { id: d.id, token: d.token };
+        writeSession(s);
+        setSession(s);
+        setBiz({ online: d.online, last_seen: d.last_seen });
+        setMessages((list) => (d.messages as ChatMsg[]).reduce(upsert, list));
+        return s;
+      })
+      .catch((e: Error) => {
+        setNotice(
+          e.message === "rate"
+            ? `You've sent a lot of messages. Please call us on ${site.phone}.`
+            : `Chat isn't available right now. Please call us on ${site.phone}.`,
+        );
+        setMessages((list) => list.map((m) => (m.pending ? { ...m, pending: false, failed: true } : m)));
+        return null;
+      })
+      .finally(() => {
+        starting.current = null;
       });
-      if (r.status === 429) throw new Error("rate");
-      if (!r.ok) throw new Error("bad");
-      const d = await r.json();
-      const s = { id: d.id, token: d.token, name };
-      writeSession(s);
-      setSession(s);
-      setMessages(d.messages);
-      setOnline(d.online);
-      setStatus("open");
-      requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("textarea")?.focus());
-    } catch (e) {
-      setError(
-        (e as Error).message === "rate"
-          ? `You've started a few chats already. Please call us on ${site.phone}.`
-          : `Chat isn't available right now. Please call us on ${site.phone}.`,
-      );
-    } finally {
-      setStarting(false);
-    }
-  }
+    return starting.current;
+  };
 
-  const sendDraft = () => {
-    const body = draft.trim();
-    if (!body || !session) return;
-    send({ type: "message", body });
+  const sendText = (text: string) => {
+    const body = text.trim();
+    if (!body) return;
+    const client_id = newClientId();
+    const local: ChatMsg = { id: client_id, client_id, sender: "visitor", body, image: null, delivered_at: null, read_at: null, created_at: new Date().toISOString(), pending: true };
+    setMessages((l) => [...l, local]);
     setDraft("");
+    setNotice("");
+    setClosed(false);
+    if (session) send({ type: "message", body, client_id });
+    else ensureSession({ body, client_id });
+  };
+
+  const sendPhoto = async (file: File) => {
+    if (!file.type.startsWith("image/")) return setNotice("You can send photos here. For a video, ask us where to send it.");
+    if (file.size > 10 * 1024 * 1024) return setNotice("That photo is over 10 MB. Try a smaller one.");
+    setNotice("");
+    const client_id = newClientId();
+    const preview = URL.createObjectURL(file);
+    const local: ChatMsg = { id: client_id, client_id, sender: "visitor", body: "", image: preview, delivered_at: null, read_at: null, created_at: new Date().toISOString(), pending: true };
+    setMessages((l) => [...l, local]);
+    const s = await ensureSession();
+    if (!s) return;
+    const form = new FormData();
+    form.append("photo", file);
+    form.append("client_id", client_id);
+    try {
+      const r = await fetch(`${API_URL}/api/chat/${s.id}/photo/?token=${encodeURIComponent(s.token)}`, { method: "POST", body: form });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.photo?.[0] ?? "Couldn't send that photo. Try again.");
+      setMessages((l) => upsert(l, d as ChatMsg));
+    } catch (e) {
+      setNotice((e as Error).message);
+      setMessages((l) => l.map((m) => (m.client_id === client_id && m.pending ? { ...m, pending: false, failed: true } : m)));
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(preview), 30_000);
+    }
   };
 
   const onDraftChange = (v: string) => {
     setDraft(v);
     const now = Date.now();
-    if (session && now - lastTypingSent.current > 2000) {
+    if (session && v && now - lastTypingSent.current > 2000) {
       lastTypingSent.current = now;
       send({ type: "typing" }, false);
     }
   };
 
-  const newChat = () => {
-    writeSession(null);
-    setSession(null);
-    setMessages([]);
-    setStatus("open");
-  };
-
-  const statusLine =
-    online === null
-      ? "We reply as soon as we can"
-      : online
-        ? "Online now · usually replies in minutes"
-        : "Away · leave a message, we'll get back to you";
+  const status = typing ? "typing…" : biz?.online ? "online" : (lastSeen(biz?.last_seen) ?? "usually replies within minutes");
+  const hasVisitorMsg = messages.some((m) => m.sender === "visitor");
+  const hasReply = messages.some((m) => m.sender === "admin");
+  const tel = `tel:${site.phone.replace(/\s/g, "")}`;
 
   return (
     <>
@@ -231,11 +295,11 @@ export function ChatWidget() {
               <path d="M8.5 9.5h7M8.5 12.5h4" strokeLinecap="round" />
             </svg>
           )}
-          {!open && online && <span className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-brand bg-ok" aria-hidden="true" />}
+          {!open && biz?.online && <span className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-brand bg-ok" aria-hidden="true" />}
         </span>
         <span className="hidden md:inline">{open ? "Close" : "Message us"}</span>
         {unread > 0 && !open && (
-          <span className="absolute -left-1.5 -top-1.5 grid min-w-6 place-items-center rounded-full bg-ink px-1.5 text-[0.8125rem] leading-6 text-white" aria-hidden="true">
+          <span className="absolute -left-1.5 -top-1.5 grid min-w-6 place-items-center rounded-full bg-ok px-1.5 text-[0.8125rem] font-bold leading-6 text-white" aria-hidden="true">
             {unread}
           </span>
         )}
@@ -247,26 +311,31 @@ export function ChatWidget() {
         role="dialog"
         aria-labelledby={titleId}
         hidden={!open}
-        onKeyDown={(e) => e.key === "Escape" && closePanel()}
-        className="chat-panel fixed inset-0 z-[60] flex flex-col overflow-hidden bg-bg md:inset-auto md:bottom-24 md:right-6 md:h-[min(620px,calc(100svh-140px))] md:w-[392px] md:rounded-md md:rounded-tl-[40px] md:shadow-lift md:ring-1 md:ring-line"
+        onKeyDown={(e) => e.key === "Escape" && !viewing && closePanel()}
+        className="chat-panel fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#e9eff6] md:inset-auto md:bottom-24 md:right-6 md:h-[min(640px,calc(100svh-140px))] md:w-[400px] md:rounded-md md:shadow-lift md:ring-1 md:ring-line"
       >
-        <header className="on-dark grain flex items-center gap-3 bg-ink px-5 pb-4 pt-[max(16px,env(safe-area-inset-top))] text-on-dark md:pt-5 md:pl-7">
-          <ElbowMark className="size-10 shrink-0" />
+        <header className="on-dark flex items-center gap-2.5 bg-ink px-2 pb-2.5 pt-[max(10px,env(safe-area-inset-top))] text-on-dark md:px-4 md:py-3">
+          <button type="button" onClick={closePanel} aria-label="Close chat" className="grid size-10 cursor-pointer place-items-center rounded-full hover:bg-on-dark/10 md:hidden">
+            <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M15 5 8 12l7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <span className="relative shrink-0">
+            <ElbowMark className="size-10" />
+            {biz?.online && <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-ink bg-ok" aria-hidden="true" />}
+          </span>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="font-display text-[1.0625rem] font-bold leading-tight text-on-dark [font-stretch:110%]">
+            <h2 id={titleId} className="truncate font-display text-[1.0625rem] font-bold leading-tight text-on-dark [font-stretch:110%]">
               {site.name}
             </h2>
-            <p className="flex items-center gap-1.5 text-[0.8125rem] text-on-dark-muted">
-              <span className={`size-2 rounded-full ${online ? "bg-ok" : "bg-on-dark-muted/60"}`} aria-hidden="true" />
-              {statusLine}
-            </p>
+            <p className={`truncate text-[0.8125rem] ${typing || biz?.online ? "text-sky" : "text-on-dark-muted"}`}>{status}</p>
           </div>
-          <button
-            type="button"
-            onClick={closePanel}
-            aria-label="Close chat"
-            className="grid size-11 cursor-pointer place-items-center rounded-full text-on-dark hover:bg-on-dark/10"
-          >
+          <a href={tel} aria-label={`Call ${site.phone}`} className="grid size-10 place-items-center rounded-full text-on-dark hover:bg-on-dark/10">
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
+              <path d="M5 4h3.5l1.7 4.3-2.2 1.4a11 11 0 0 0 6.3 6.3l1.4-2.2L20 15.5V19a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z" strokeLinejoin="round" />
+            </svg>
+          </a>
+          <button type="button" onClick={closePanel} aria-label="Close chat" className="hidden size-10 cursor-pointer place-items-center rounded-full text-on-dark hover:bg-on-dark/10 md:grid">
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
               <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
             </svg>
@@ -274,159 +343,58 @@ export function ChatWidget() {
         </header>
 
         {session && sockState === "closed" && (
-          <p className="bg-[#fff4d6] px-5 py-2 text-[0.8125rem] font-medium text-[#6b4e00]" role="status">
-            Reconnecting… messages will send when you&apos;re back online.
+          <p className="bg-[#fff4d6] px-4 py-1.5 text-center text-[0.8125rem] font-medium text-[#6b4e00]" role="status">
+            Connecting… messages will send when you&apos;re back online.
           </p>
         )}
 
-        <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-5" role="log" aria-live="polite" aria-label="Messages">
-          <Bubble from="admin">
-            Hi, tell us what&apos;s going on and we&apos;ll reply right here. If water is leaking, turn it off at the stopcock first.
-          </Bubble>
-          {messages.map((m, i) => (
-            <Bubble key={m.id} from={m.sender} at={m.created_at} grouped={messages[i - 1]?.sender === m.sender}>
-              {m.body}
-            </Bubble>
-          ))}
-          {adminTyping && (
-            <div className="mb-2 flex w-fit items-center gap-1 rounded-[18px] rounded-bl-[6px] border border-line bg-surface px-4 py-3" aria-label="Typing">
-              <span className="typing-dot" />
-              <span className="typing-dot [animation-delay:150ms]" />
-              <span className="typing-dot [animation-delay:300ms]" />
+        <div ref={listRef} className="chat-wall flex-1 overflow-y-auto px-3 pb-3 pt-1 md:px-4" role="log" aria-live="polite" aria-label="Messages">
+          <p className="mx-auto my-3 max-w-[290px] rounded-md bg-[#fdf6dd] px-3 py-2 text-center text-[0.75rem] leading-snug text-[#5c4a14]">
+            Messages go straight to our team. Send a photo of the problem and we can often tell you what it is before we visit.
+          </p>
+          <div className="chat-bubble mt-2.5 flex">
+            <div className="bubble-tail-in max-w-[82%] rounded-[10px] rounded-tl-[2px] bg-surface px-2.5 py-1.5 text-[0.9375rem] leading-snug shadow-[0_1px_0.5px_rgb(10_26_51/0.13)]">
+              Hi 👋 How can we help? Tell us what&apos;s going on.
             </div>
+          </div>
+          <Thread messages={messages} me="visitor" theirName={site.name} onImage={setViewing} />
+          {hasVisitorMsg && !hasReply && biz && !biz.online && (
+            <p className="mx-auto my-3 max-w-[300px] rounded-md bg-surface/90 px-3 py-2 text-center text-[0.8125rem] leading-snug text-muted shadow-hair">
+              We&apos;re out on a job right now. Leave your number and we&apos;ll call you back. For a leak or burst pipe, call{" "}
+              <a href={tel} className="font-semibold text-water">
+                {site.phone}
+              </a>
+              .
+            </p>
           )}
-          {status === "closed" && session && (
-            <div className="mt-4 grid justify-items-center gap-2 text-center text-[0.875rem] text-muted">
-              <p>This chat has been closed.</p>
-              <button type="button" onClick={newChat} className="cursor-pointer font-semibold text-water underline underline-offset-4">
-                Start a new chat
-              </button>
-            </div>
-          )}
+          {closed && session && <p className="my-3 text-center text-[0.75rem] text-muted">This chat was closed. Send a message to start again.</p>}
+          {typing && <TypingBubble label={`${site.name} is typing`} />}
         </div>
 
-        {session ? (
-          <form
-            className="flex items-end gap-2 border-t border-line bg-surface p-3 pb-[max(12px,env(safe-area-inset-bottom))]"
-            onSubmit={(e) => {
-              e.preventDefault();
-              sendDraft();
-            }}
-          >
-            <label htmlFor="chat-draft" className="sr-only">
-              Your message
-            </label>
-            <textarea
-              id="chat-draft"
-              rows={1}
-              value={draft}
-              maxLength={2000}
-              onChange={(e) => onDraftChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendDraft();
-                }
-              }}
-              placeholder={status === "closed" ? "Write to reopen the chat…" : "Write a message…"}
-              className="max-h-32 min-h-12 flex-1 resize-none rounded-[22px] border-[1.5px] border-line bg-bg px-4 py-3 text-[1rem] leading-snug [field-sizing:content] focus:border-brand focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={!draft.trim()}
-              aria-label="Send message"
-              className="grid size-12 shrink-0 cursor-pointer place-items-center rounded-full bg-brand text-white transition-transform duration-150 ease-out-soft hover:bg-brand-light active:scale-[.94] disabled:cursor-default disabled:opacity-40"
-            >
-              <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
-                <path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2Z" />
-              </svg>
-            </button>
-          </form>
-        ) : (
-          <form
-            className="grid gap-3 border-t border-line bg-surface p-4 pb-[max(16px,env(safe-area-inset-bottom))]"
-            onSubmit={(e) => {
-              e.preventDefault();
-              start(new FormData(e.currentTarget));
-            }}
-          >
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Common questions">
-              {starters.map((s) => (
+        <div className="bg-[#e9eff6] px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-1 md:px-3 md:pb-3">
+          {!hasVisitorMsg && (
+            <div className="mb-2 flex gap-1.5 overflow-x-auto pb-0.5" role="group" aria-label="Quick messages">
+              {suggestions.map((s) => (
                 <button
                   key={s}
                   type="button"
-                  onClick={(e) => {
-                    const ta = e.currentTarget.form?.elements.namedItem("message") as HTMLTextAreaElement | null;
-                    if (ta) {
-                      ta.value = `${s}: `;
-                      ta.focus();
-                    }
-                  }}
-                  className="cursor-pointer rounded-full border-[1.5px] border-line px-3 py-1.5 text-[0.8125rem] font-semibold text-ink hover:border-brand hover:text-brand"
+                  onClick={() => sendText(s)}
+                  className="shrink-0 cursor-pointer rounded-full bg-surface px-3 py-1.5 text-[0.8125rem] font-semibold text-water shadow-[0_1px_0.5px_rgb(10_26_51/0.13)] hover:bg-brand hover:text-white"
                 >
                   {s}
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="grid gap-1 text-[0.8125rem] font-semibold">
-                Name
-                <input name="name" autoComplete="name" required className="chat-input" />
-              </label>
-              <label className="grid gap-1 text-[0.8125rem] font-semibold">
-                <span>
-                  Phone or email <span className="font-normal text-muted">(optional)</span>
-                </span>
-                <input name="contact" autoComplete="tel" className="chat-input" />
-              </label>
-            </div>
-            <div aria-hidden="true" className="absolute -left-[9999px] size-px overflow-hidden">
-              <input name="website" tabIndex={-1} autoComplete="off" />
-            </div>
-            <label className="grid gap-1 text-[0.8125rem] font-semibold">
-              Message
-              <textarea name="message" rows={2} required maxLength={2000} className="chat-input resize-none [field-sizing:content] max-h-32" />
-            </label>
-            {error && (
-              <p role="alert" className="text-[0.875rem] font-medium text-[#8c1d18]">
-                {error}
-              </p>
-            )}
-            <button type="submit" className="btn min-h-12 w-full" disabled={starting}>
-              {starting ? "Starting…" : "Start chat"}
-            </button>
-          </form>
-        )}
+          )}
+          {notice && (
+            <p role="alert" className="mb-2 rounded-sm bg-surface px-3 py-2 text-[0.8125rem] font-medium text-danger">
+              {notice}
+            </p>
+          )}
+          <Composer id="chat-draft" value={draft} onChange={onDraftChange} onSend={() => sendText(draft)} onPhoto={sendPhoto} placeholder="Message" />
+        </div>
       </div>
+      <PhotoViewer src={viewing} onClose={() => setViewing(null)} />
     </>
-  );
-}
-
-function Bubble({
-  from,
-  at,
-  grouped,
-  children,
-}: {
-  from: "visitor" | "admin";
-  at?: string;
-  grouped?: boolean;
-  children: React.ReactNode;
-}) {
-  const mine = from === "visitor";
-  return (
-    <div className={`chat-bubble flex flex-col ${mine ? "items-end" : "items-start"} ${grouped ? "mt-1" : "mt-3"}`}>
-      <p
-        className={`m-0 max-w-[85%] whitespace-pre-wrap break-words px-4 py-2.5 text-[0.9375rem] leading-snug ${
-          mine
-            ? "rounded-[18px] rounded-br-[6px] bg-brand text-white"
-            : "rounded-[18px] rounded-bl-[6px] border border-line bg-surface text-ink"
-        }`}
-      >
-        <span className="sr-only">{mine ? "You: " : `${site.name}: `}</span>
-        {children}
-      </p>
-      {at && <time className="mt-1 px-1 text-[0.75rem] text-muted">{time(at)}</time>}
-    </div>
   );
 }

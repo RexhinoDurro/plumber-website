@@ -37,47 +37,65 @@ with sync_playwright() as p:
     admin.screenshot(path=f"{SHOTS}/02-overview.png", full_page=True)
     print("login + overview ok")
 
-    # --- visitor opens the site: chat button shows online
+    # --- visitor opens the site: no form, just type
     vis_ctx = b.new_context(viewport={"width": 1280, "height": 860})
     vis = vis_ctx.new_page(); wire(vis, "visitor")
     vis.goto(f"{BASE}/services")
-    fab = vis.get_by_role("button", name=re.compile("Message us"))
-    expect(fab).to_be_visible()
-    fab.click()
+    vis.get_by_role("button", name=re.compile("Message us")).click()
     panel = vis.locator("#chat-panel")
-    expect(panel.get_by_text("Online now")).to_be_visible(timeout=8000)
+    expect(panel.locator("header").get_by_text("online", exact=True)).to_be_visible(timeout=8000)
+    assert panel.locator("input[name=name]").count() == 0, "chat should not ask for a name"
     vis.screenshot(path=f"{SHOTS}/03-visitor-chat-start.png")
-    panel.locator("input[name=name]").fill("Réka Teszt")
-    panel.locator("input[name=contact]").fill("+36 30 555 1234")
-    panel.locator("textarea[name=message]").fill("Hi, my kitchen tap is dripping non-stop. Can you come this week?")
-    panel.get_by_role("button", name="Start chat").click()
+    vis.locator("#chat-draft").fill("Hi, my kitchen tap is dripping non-stop. Can you come this week?")
+    vis.keyboard.press("Enter")
     expect(panel.get_by_text("kitchen tap is dripping")).to_be_visible()
-    print("visitor started chat")
+    expect(panel.get_by_label("Delivered").first).to_be_visible(timeout=8000)  # staff online: two grey ticks
+    print("visitor started chat without a form; delivered ticks ok")
 
-    # --- admin gets the alert + sees it in the inbox
+    # --- admin gets the alert and opens the chat -> visitor's ticks turn to Read
     expect(admin.get_by_text("New chat message")).to_be_visible(timeout=8000)
     admin.goto(f"{BASE}/admin/inbox")
-    row = admin.get_by_role("button", name=re.compile("Réka Teszt"))
+    row = admin.get_by_role("button", name=re.compile("kitchen tap is dripping"))
     expect(row).to_be_visible(timeout=8000)
+    expect(row.get_by_text(re.compile("^Visitor "))).to_be_visible()
     row.click()
     expect(admin.locator("[role=log]").get_by_text("kitchen tap is dripping")).to_be_visible()
+    expect(panel.get_by_label("Read").first).to_be_visible(timeout=8000)
+    print("read receipts ok")
 
-    # visitor typing -> admin sees indicator
+    # visitor typing -> admin sees it in the header and as a bubble
     vis.locator("#chat-draft").fill("Also the")
     expect(admin.get_by_label(re.compile("is typing"))).to_be_visible(timeout=5000)
+    vis.locator("#chat-draft").fill("")
     print("typing indicator ok")
 
-    # admin replies with a quick reply -> visitor receives it live
+    # admin quick reply sends straight away -> visitor sees it live, header says typing first
+    admin.locator("#reply").fill("One sec")
+    expect(panel.locator("header").get_by_text("typing…")).to_be_visible(timeout=5000)
+    admin.locator("#reply").fill("")
     admin.get_by_role("button", name="Ask postcode").click()
-    admin.get_by_role("button", name="Send", exact=True).click()
     expect(panel.get_by_text("What's your postcode?")).to_be_visible(timeout=8000)
     print("admin -> visitor ok")
 
-    # visitor answers -> admin sees it live in the open thread
-    vis.locator("#chat-draft").fill("District XIII, 1134")
+    # visitor answers with a phone number -> picked up as their contact
+    vis.locator("#chat-draft").fill("District XIII, 1134. Call me on +36 30 555 1234")
     vis.keyboard.press("Enter")
     expect(admin.locator("[role=log]").get_by_text("District XIII, 1134")).to_be_visible(timeout=8000)
-    print("visitor -> admin ok")
+    expect(admin.get_by_role("link", name="Call")).to_be_visible(timeout=8000)
+    print("visitor -> admin ok, phone detected")
+
+    # visitor sends a photo -> admin sees it in the thread
+    pbuf = io.BytesIO(); Image.new("RGB", (800, 600), (90, 120, 160)).save(pbuf, "JPEG")
+    panel.locator("input[type=file]").set_input_files(files=[{"name": "leak.jpg", "mimeType": "image/jpeg", "buffer": pbuf.getvalue()}])
+    expect(admin.locator("[role=log] img[alt='Photo sent in the chat']")).to_have_count(1, timeout=10000)
+    print("visitor photo -> admin ok")
+
+    # admin names the customer
+    name_input = admin.get_by_label("Name")
+    if name_input.is_visible():
+        name_input.fill("Réka Teszt"); name_input.press("Enter")
+        expect(admin.locator("header").get_by_text("Réka Teszt")).to_be_visible(timeout=5000)
+    time.sleep(0.6)
     admin.screenshot(path=f"{SHOTS}/04-inbox.png")
     vis.screenshot(path=f"{SHOTS}/05-visitor-chat.png")
 
@@ -133,19 +151,24 @@ with sync_playwright() as p:
     admin.goto(f"{BASE}/admin"); time.sleep(1.2)
     admin.screenshot(path=f"{SHOTS}/10-overview-after.png", full_page=True)
 
-    # --- admin leaves -> visitor sees "Away"
+    # --- admin leaves -> visitor sees "last seen today at ..."
     admin_ctx.close()
     vis.goto(f"{BASE}/about")
     vis.get_by_role("button", name=re.compile("Message us")).click()
-    expect(vis.locator("#chat-panel").get_by_text(re.compile("Away"))).to_be_visible(timeout=8000)
-    print("presence away ok")
+    expect(vis.locator("#chat-panel header").get_by_text(re.compile("last seen today at"))).to_be_visible(timeout=8000)
+    print("last seen ok")
 
     # --- mobile
     m = b.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True).new_page(); wire(m, "mobile")
     m.goto(f"{BASE}/")
     m.screenshot(path=f"{SHOTS}/11-mobile-fab.png")
     m.get_by_role("button", name=re.compile("Message us")).click()
+    m.screenshot(path=f"{SHOTS}/12-mobile-chat-empty.png")
+    m.get_by_role("button", name="I have a leak").click()
+    expect(m.locator("#chat-panel [role=log]").get_by_text("I have a leak")).to_be_visible(timeout=8000)
+    time.sleep(0.8)
     m.screenshot(path=f"{SHOTS}/12-mobile-chat.png")
+    print("mobile suggestion chip sends ok")
     m.goto(f"{BASE}/admin/login")
     m.fill("input[name=username]", "admin"); m.fill("input[name=password]", os.environ.get("ADMIN_PASSWORD", "plumber-demo-2026")); m.click("button[type=submit]")
     m.wait_for_url(f"{BASE}/admin"); time.sleep(1.2)

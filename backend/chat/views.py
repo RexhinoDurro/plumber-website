@@ -10,56 +10,92 @@ from leads.models import Lead
 
 from . import presence
 from .models import Conversation, Message, QuickReply
-from .serializers import MessageSerializer, QuickReplySerializer, StartChatSerializer
-from .services import add_message, conversation_payload
+from .serializers import ConversationInfoSerializer, MessageSerializer, QuickReplySerializer, StartChatSerializer
+from .services import add_message, conversation_payload, mark_read
+
+MAX_PHOTO_MB = 10
+
+
+def _photo(request):
+    """The uploaded chat photo, or an error message."""
+    f = request.FILES.get("photo")
+    if not f:
+        return None, "Choose a photo."
+    if not (f.content_type or "").startswith("image/") or f.name.rsplit(".", 1)[-1].lower() not in {"jpg", "jpeg", "png", "webp", "heic", "heif", "gif"}:
+        return None, "Send a photo (JPG, PNG, WebP or HEIC)."
+    if f.size > MAX_PHOTO_MB * 1024 * 1024:
+        return None, f"Photos can be up to {MAX_PHOTO_MB} MB."
+    return f, None
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def chat_presence(request):
-    return Response({"online": presence.admins_online() > 0})
+    return Response(presence.business_status())
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @throttle_classes([PublicPostThrottle])
 def start_chat(request):
+    """Open a conversation with the first message. No name or contact needed."""
     s = StartChatSerializer(data=request.data)
     s.is_valid(raise_exception=True)
     if s.validated_data.get("website"):
         return Response({"detail": "ok"}, status=status.HTTP_201_CREATED)  # silently drop bots
     conv = Conversation.objects.create(
-        visitor_name=s.validated_data["name"].strip(),
-        visitor_contact=s.validated_data.get("contact", "").strip(),
+        visitor_name=s.validated_data.get("name", "").strip(),
         page_url=s.validated_data.get("page", "")[:300],
     )
     push(ADMINS, {"type": "conversation_new", "conversation": conversation_payload(conv)})
-    add_message(conv, Message.Sender.VISITOR, s.validated_data["message"])
+    if s.validated_data.get("message", "").strip():
+        add_message(conv, Message.Sender.VISITOR, s.validated_data["message"], s.validated_data.get("client_id", ""))
     return Response(
         {
             "id": str(conv.id),
             "token": conv.visitor_token,
             "messages": MessageSerializer(conv.messages.all(), many=True).data,
-            "online": presence.admins_online() > 0,
+            **presence.business_status(),
         },
         status=status.HTTP_201_CREATED,
     )
 
 
+def _visitor_conv(request, pk):
+    conv = get_object_or_404(Conversation, pk=pk)
+    token = request.query_params.get("token") or (request.data.get("token") if request.method == "POST" else None)
+    return conv if token and token == conv.visitor_token else None
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def visitor_messages(request, pk):
-    conv = get_object_or_404(Conversation, pk=pk)
-    if request.query_params.get("token") != conv.visitor_token:
+    conv = _visitor_conv(request, pk)
+    if conv is None:
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
     return Response(
         {
             "id": str(conv.id),
             "status": conv.status,
             "messages": MessageSerializer(conv.messages.all(), many=True).data,
-            "online": presence.admins_online() > 0,
+            **presence.business_status(),
         }
     )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([PublicPostThrottle])
+def visitor_photo(request, pk):
+    """A visitor sends a photo (e.g. of the leak) into the chat."""
+    conv = _visitor_conv(request, pk)
+    if conv is None:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    f, err = _photo(request)
+    if err:
+        return Response({"photo": [err]}, status=status.HTTP_400_BAD_REQUEST)
+    msg = add_message(conv, Message.Sender.VISITOR, request.data.get("body", ""), request.data.get("client_id", ""), attachment=f)
+    return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
 
 
 class ConversationAdminViewSet(viewsets.ReadOnlyModelViewSet):
@@ -85,9 +121,29 @@ class ConversationAdminViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
+    def photo(self, request, pk=None):
+        conv = self.get_object()
+        f, err = _photo(request)
+        if err:
+            return Response({"photo": [err]}, status=status.HTTP_400_BAD_REQUEST)
+        msg = add_message(conv, Message.Sender.ADMIN, request.data.get("body", ""), request.data.get("client_id", ""), attachment=f)
+        return Response(MessageSerializer(msg).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["patch"])
+    def info(self, request, pk=None):
+        """Staff fill in the customer's name / phone once they know it."""
+        conv = self.get_object()
+        s = ConversationInfoSerializer(conv, data=request.data, partial=True)
+        s.is_valid(raise_exception=True)
+        s.save()
+        payload = conversation_payload(conv)
+        push(ADMINS, {"type": "conversation", "conversation": payload})
+        return Response(payload)
+
+    @action(detail=True, methods=["post"])
     def read(self, request, pk=None):
         conv = self.get_object()
-        Conversation.objects.filter(pk=conv.pk).update(unread_for_admin=0)
+        mark_read(conv.id, Message.Sender.ADMIN)
         conv.refresh_from_db()
         push(ADMINS, {"type": "conversation", "conversation": conversation_payload(conv)})
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -109,12 +165,12 @@ class ConversationAdminViewSet(viewsets.ReadOnlyModelViewSet):
         if conv.lead_id:
             return Response({"lead": conv.lead_id})
         contact = conv.visitor_contact
-        transcript = "\n".join(f"{m.get_sender_display()}: {m.body}" for m in conv.messages.all())
+        transcript = "\n".join(f"{m.get_sender_display()}: {m.body or '[photo]'}" for m in conv.messages.all())
         lead = Lead.objects.create(
-            name=conv.visitor_name,
+            name=conv.display_name,
             phone=contact if "@" not in contact else "",
             email=contact if "@" in contact else "",
-            message=conv.messages.filter(sender=Message.Sender.VISITOR).first().body if conv.messages.exists() else "",
+            message=next((m.body for m in conv.messages.filter(sender=Message.Sender.VISITOR) if m.body), ""),
             source=Lead.Source.CHAT,
             notes=f"From live chat:\n{transcript}",
         )

@@ -11,10 +11,10 @@ pytestmark = [pytest.mark.django_db(transaction=True), pytest.mark.asyncio]
 ORIGIN = [(b"origin", b"http://localhost:3000")]
 
 
-async def until(comm, kind, tries=8):
+async def until(comm, kind, tries=12, **match):
     for _ in range(tries):
         msg = await comm.receive_json_from(timeout=2)
-        if msg.get("type") == kind:
+        if msg.get("type") == kind and all(msg.get(k) == v for k, v in match.items()):
             return msg
     raise AssertionError(f"no {kind} event")
 
@@ -39,10 +39,21 @@ async def test_visitor_and_admin_talk_live(token):
     hello = await visitor.receive_json_from()
     assert hello["type"] == "hello" and hello["online"] is True  # admin is online
 
-    # visitor -> admin
-    await visitor.send_json_to({"type": "message", "body": "Water under the sink"})
+    # admin sees the visitor come online
+    assert (await until(admin, "visitor_presence"))["online"] is True
+
+    # visitor -> admin; delivered straight away because staff are online; client_id echoed back
+    await visitor.send_json_to({"type": "message", "body": "Water under the sink", "client_id": "tmp-1"})
     got = await until(admin, "message")
     assert got["message"]["body"] == "Water under the sink" and got["message"]["sender"] == "visitor"
+    assert got["message"]["delivered_at"] and not got["message"]["read_at"]
+    mine = await until(visitor, "message")
+    assert mine["message"]["client_id"] == "tmp-1"
+
+    # admin opens it -> visitor gets a "read" receipt (blue ticks)
+    await admin.send_json_to({"type": "read", "conversation": cid})
+    receipt = await until(visitor, "receipt")
+    assert receipt["status"] == "read" and receipt["sender"] == "visitor"
 
     # typing indicator admin -> visitor
     await admin.send_json_to({"type": "typing", "conversation": cid})
@@ -56,10 +67,32 @@ async def test_visitor_and_admin_talk_live(token):
     count = await sync_to_async(Message.objects.filter(conversation_id=cid).count)()
     assert count == 2
 
-    # admin leaves -> visitor sees offline
+    # visitor reads the reply -> admin gets a read receipt
+    await visitor.send_json_to({"type": "read"})
+    receipt = await until(admin, "receipt", sender="admin")
+    assert receipt["status"] == "read"
+
+    # admin leaves -> visitor sees offline with a "last seen" time
     await admin.disconnect()
-    assert (await until(visitor, "presence"))["online"] is False
+    p = await until(visitor, "presence")
+    assert p["online"] is False and p["last_seen"]
     await visitor.disconnect()
+
+
+async def test_reply_while_visitor_away_is_delivered_when_they_return(token):
+    cid, vtok = await make_conv()
+    admin = WebsocketCommunicator(application, f"/ws/admin/?token={token}", headers=ORIGIN)
+    await admin.connect()
+    await admin.send_json_to({"type": "message", "conversation": cid, "body": "We can come at 9"})
+    got = await until(admin, "message")
+    assert got["message"]["delivered_at"] is None  # visitor not connected: one tick
+
+    visitor = WebsocketCommunicator(application, f"/ws/chat/{cid}/?token={vtok}", headers=ORIGIN)
+    await visitor.connect()
+    receipt = await until(admin, "receipt")
+    assert receipt["status"] == "delivered"  # two ticks once they're back
+    await visitor.disconnect()
+    await admin.disconnect()
 
 
 async def test_visitor_needs_right_token():

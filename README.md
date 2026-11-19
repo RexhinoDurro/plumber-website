@@ -29,7 +29,7 @@ The website still works if the backend is down: the gallery and reviews fall bac
 ### Dashboard features
 
 - **Overview:** who is still waiting for a reply and for how long (the number that wins jobs), requests, bookings and average first-reply time against last week, requests per day, the pipeline and live activity.
-- **Inbox:** live chat with website visitors. Typing indicators, unread counts, saved quick replies, close/reopen, and "Add to leads" (keeps the transcript). Visitors see "Online now" while the dashboard is open and "Away" when it isn't.
+- **Chat (works like WhatsApp):** visitors press "Message us" and just type: no form. Messages, photos, "typing…", ✓ sent / ✓✓ delivered / blue ✓✓ read, and "online" / "last seen today at 07:12" on both sides. Phone numbers or emails typed in the chat are saved as the customer's contact automatically; staff can add the name. Saved quick replies send in one tap, and "Add to leads" keeps the transcript. Chats survive page reloads and reconnect on their own.
 - **Leads:** every quote request arrives instantly (sound, toast, tab count, optional desktop alert). Stages New → Contacted → Quoted → Booked / Lost, waiting timers, notes, search.
 - **Gallery:** drag-and-drop photo/video upload with progress. A description is required (for Google and screen readers). Publish/hide, pick home-page photos, and drag to reorder. Changes show on `/gallery` straight away.
 - **Reviews:** add real reviews; publishing needs the customer's consent. The 3 newest replace the home-page placeholders.

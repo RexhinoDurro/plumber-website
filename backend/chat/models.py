@@ -14,7 +14,7 @@ class Conversation(models.Model):
         CLOSED = "closed", "Closed"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    visitor_name = models.CharField(max_length=80)
+    visitor_name = models.CharField(max_length=80, blank=True, help_text="Empty until the visitor says it or staff add it")
     visitor_contact = models.CharField(max_length=120, blank=True, help_text="Phone or email, if given")
     visitor_token = models.CharField(max_length=64, default=new_token, editable=False)
     page_url = models.CharField(max_length=300, blank=True)
@@ -31,11 +31,17 @@ class Conversation(models.Model):
         ordering = ["-last_message_at"]
 
     def __str__(self):
-        return f"{self.visitor_name} ({self.created_at:%Y-%m-%d %H:%M})"
+        return f"{self.display_name} ({self.created_at:%Y-%m-%d %H:%M})"
+
+    @property
+    def display_name(self):
+        return self.visitor_name or f"Visitor {str(self.id)[:4].upper()}"
 
     def last_preview(self):
         m = self.messages.order_by("-created_at").first()
-        return (m.body[:90] if m else "")
+        if not m:
+            return ""
+        return m.body[:90] or "📷 Photo"
 
 
 class Message(models.Model):
@@ -45,7 +51,12 @@ class Message(models.Model):
 
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     sender = models.CharField(max_length=10, choices=Sender.choices)
-    body = models.TextField(max_length=2000)
+    body = models.TextField(max_length=2000, blank=True)
+    attachment = models.ImageField(upload_to="chat/%Y/%m/", blank=True)
+    # Lets the sender match the server's echo to the message it showed as "sending".
+    client_id = models.CharField(max_length=40, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

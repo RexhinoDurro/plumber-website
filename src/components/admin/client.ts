@@ -1,6 +1,7 @@
 "use client";
 
 import { API_URL } from "@/lib/api";
+import type { ChatMsg } from "../chat/Thread";
 
 const KEY = "northline-admin";
 
@@ -80,10 +81,13 @@ export function upload<T>(path: string, form: FormData, onProgress: (pct: number
 }
 
 // ---- shared types ----
-export type Message = { id: number; sender: "visitor" | "admin"; body: string; created_at: string };
+export type Message = ChatMsg;
 export type Conversation = {
   id: string;
   visitor_name: string;
+  display_name: string;
+  visitor_online: boolean;
+  visitor_last_seen: string | null;
   visitor_contact: string;
   page_url: string;
   status: "open" | "closed";
@@ -91,7 +95,7 @@ export type Conversation = {
   first_admin_reply_at: string | null;
   last_message_at: string;
   created_at: string;
-  last_message: Message | null;
+  last_message: ChatMsg | null;
   lead: string | null;
   demo: boolean;
 };

@@ -156,8 +156,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         if (m.sender === "visitor") {
           const href = `/admin/inbox#${e.conversation}`;
           const inInbox = pathRef.current === "/admin/inbox" && document.visibilityState === "visible";
-          if (!inInbox) toast({ title: "New chat message", body: m.body.slice(0, 120), href });
-          ping("New chat message", m.body.slice(0, 120), href);
+          const text = m.body ? m.body.slice(0, 120) : "📷 Photo";
+          if (!inInbox) toast({ title: "New chat message", body: text, href });
+          ping("New chat message", text, href);
         }
       }
       if (e.type === "lead_new") {
@@ -171,7 +172,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     },
   });
 
-  const sendFree = useCallback((d: Record<string, unknown>) => send(d, false), [send]);
+  const sendFree = useCallback((d: Record<string, unknown>) => send(d, d.type === "message"), [send]);
   const unreadChats = Object.values(unreadMap).filter((n) => n > 0).length;
 
   // Unread count in the browser tab title.

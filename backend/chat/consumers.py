@@ -4,8 +4,10 @@ Real-time chat over WebSockets.
 Visitor socket:  /ws/chat/<conversation-id>/?token=<visitor token>
 Admin socket:    /ws/admin/?token=<staff API token>
 
-Events sent to clients are JSON objects with a "type": message, typing, presence,
-conversation, conversation_new, lead_new, status, hello.
+Client -> server: {"type": "message", "body", "client_id"} · {"type": "typing"} · {"type": "read"}
+(admins add "conversation": <id>).
+Server -> client: hello, message, receipt (delivered/read ticks), typing, presence,
+visitor_presence, conversation, conversation_new, lead_new, status.
 """
 
 from urllib.parse import parse_qs
@@ -17,7 +19,7 @@ from core.realtime import ADMINS, VISITORS, conv_group
 
 from . import presence
 from .models import Conversation, Message
-from .services import add_message, conversation_payload
+from .services import add_message, mark_delivered, mark_read
 
 
 def _query_token(scope) -> str:
@@ -28,6 +30,9 @@ def _query_token(scope) -> str:
 class BroadcastMixin:
     async def broadcast(self, event):
         await self.send_json(event["payload"])
+
+    async def to(self, group, payload):
+        await self.channel_layer.group_send(group, {"type": "broadcast", "payload": payload})
 
 
 class VisitorConsumer(BroadcastMixin, AsyncJsonWebsocketConsumer):
@@ -41,31 +46,38 @@ class VisitorConsumer(BroadcastMixin, AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_add(self.group, self.channel_name)
         await self.channel_layer.group_add(VISITORS, self.channel_name)
         await self.accept()
-        await self.send_json({"type": "hello", "online": presence.admins_online() > 0, "status": self.conv.status})
+        if presence.visitor_change(self.conv_id, +1) == 1:
+            await self.to(ADMINS, {"type": "visitor_presence", "conversation": self.conv_id, "online": True})
+            # Replies sent while they were away have now reached their device.
+            await database_sync_to_async(mark_delivered)(self.conv_id, Message.Sender.ADMIN)
+        await self.send_json({"type": "hello", **presence.business_status(), "status": self.conv.status})
 
     async def disconnect(self, code):
         if getattr(self, "group", None):
             await self.channel_layer.group_discard(self.group, self.channel_name)
             await self.channel_layer.group_discard(VISITORS, self.channel_name)
+            if presence.visitor_change(self.conv_id, -1) == 0:
+                await self.to(
+                    ADMINS,
+                    {"type": "visitor_presence", "conversation": self.conv_id, "online": False, "last_seen": presence.visitor_last_seen(self.conv_id)},
+                )
 
     async def receive_json(self, content, **kwargs):
         kind = content.get("type")
         if kind == "message":
             body = str(content.get("body", "")).strip()
             if body:
-                await database_sync_to_async(add_message)(self.conv, Message.Sender.VISITOR, body)
+                await database_sync_to_async(add_message)(self.conv, Message.Sender.VISITOR, body, str(content.get("client_id", "")))
         elif kind == "typing":
-            await self.channel_layer.group_send(
-                ADMINS, {"type": "broadcast", "payload": {"type": "typing", "conversation": self.conv_id, "who": "visitor"}}
-            )
+            await self.to(ADMINS, {"type": "typing", "conversation": self.conv_id, "who": "visitor"})
         elif kind == "read":
-            await database_sync_to_async(Conversation.objects.filter(pk=self.conv_id).update)(unread_for_visitor=0)
+            await database_sync_to_async(mark_read)(self.conv_id, Message.Sender.VISITOR)
 
     @database_sync_to_async
     def _get_conversation(self, pk, token):
         try:
             conv = Conversation.objects.get(pk=pk)
-        except (Conversation.DoesNotExist, ValueError, Exception):
+        except Exception:
             return None
         return conv if token and token == conv.visitor_token else None
 
@@ -81,15 +93,15 @@ class AdminConsumer(BroadcastMixin, AsyncJsonWebsocketConsumer):
         self.counted = True
         n = presence.change(+1)
         if n == 1:
-            await self.channel_layer.group_send(VISITORS, {"type": "broadcast", "payload": {"type": "presence", "online": True}})
+            await self.to(VISITORS, {"type": "presence", "online": True, "last_seen": None})
+            await database_sync_to_async(mark_delivered)(None, Message.Sender.VISITOR)
         await self.send_json({"type": "hello", "admins_online": n})
 
     async def disconnect(self, code):
         if getattr(self, "counted", False):
             await self.channel_layer.group_discard(ADMINS, self.channel_name)
-            n = presence.change(-1)
-            if n == 0:
-                await self.channel_layer.group_send(VISITORS, {"type": "broadcast", "payload": {"type": "presence", "online": False}})
+            if presence.change(-1) == 0:
+                await self.to(VISITORS, {"type": "presence", "online": False, "last_seen": presence.admins_last_seen()})
 
     async def receive_json(self, content, **kwargs):
         kind = content.get("type")
@@ -100,14 +112,11 @@ class AdminConsumer(BroadcastMixin, AsyncJsonWebsocketConsumer):
         if kind == "message":
             body = str(content.get("body", "")).strip()
             if body:
-                await database_sync_to_async(add_message)(conv, Message.Sender.ADMIN, body)
+                await database_sync_to_async(add_message)(conv, Message.Sender.ADMIN, body, str(content.get("client_id", "")))
         elif kind == "typing":
-            await self.channel_layer.group_send(
-                conv_group(conv_id), {"type": "broadcast", "payload": {"type": "typing", "conversation": conv_id, "who": "admin"}}
-            )
+            await self.to(conv_group(conv_id), {"type": "typing", "conversation": conv_id, "who": "admin"})
         elif kind == "read":
-            payload = await self._mark_read(conv_id)
-            await self.channel_layer.group_send(ADMINS, {"type": "broadcast", "payload": {"type": "conversation", "conversation": payload}})
+            await database_sync_to_async(mark_read)(conv_id, Message.Sender.ADMIN)
 
     @database_sync_to_async
     def _user_for_token(self, key):
@@ -127,8 +136,3 @@ class AdminConsumer(BroadcastMixin, AsyncJsonWebsocketConsumer):
             return Conversation.objects.get(pk=pk)
         except Exception:
             return None
-
-    @database_sync_to_async
-    def _mark_read(self, pk):
-        Conversation.objects.filter(pk=pk).update(unread_for_admin=0)
-        return conversation_payload(Conversation.objects.get(pk=pk))

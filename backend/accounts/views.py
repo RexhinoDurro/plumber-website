@@ -73,7 +73,7 @@ def waiting_items(now):
                 if m.sender != Message.Sender.VISITOR:
                     break
                 since = m.created_at
-            items.append({"type": "chat", "id": str(c.id), "name": c.visitor_name, "detail": msgs[-1].body[:80], "since": since, "urgent": False})
+            items.append({"type": "chat", "id": str(c.id), "name": c.display_name, "detail": msgs[-1].body[:80] or "📷 Photo", "since": since, "urgent": False})
     items.sort(key=lambda i: i["since"])
     return items
 
@@ -107,7 +107,7 @@ def stats(request):
         {"type": "lead", "id": l.id, "title": f"{l.name} sent a {l.get_source_display().lower()} request", "detail": l.job, "at": l.created_at}
         for l in Lead.objects.exclude(source=Lead.Source.CHAT).order_by("-created_at")[:8]
     ] + [
-        {"type": "chat", "id": str(c.id), "title": f"{c.visitor_name} started a chat", "detail": c.last_preview(), "at": c.created_at}
+        {"type": "chat", "id": str(c.id), "title": f"{c.display_name} started a chat", "detail": c.last_preview(), "at": c.created_at}
         for c in Conversation.objects.order_by("-created_at")[:8]
     ] + [
         {"type": "booked", "id": l.id, "title": f"{l.name} booked", "detail": l.job, "at": l.updated_at}

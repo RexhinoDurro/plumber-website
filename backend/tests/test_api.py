@@ -114,8 +114,38 @@ def test_chat_start_and_token_check(api, admin_api):
     assert conv["unread_for_admin"] == 1 and conv["last_message"]["body"] == "Radiator cold at the top"
 
 
+def test_chat_needs_no_name_and_learns_phone(api, admin_api):
+    r = api.post("/api/chat/start/", {"message": "Toilet won't stop running", "client_id": "c-1"}, format="json")
+    assert r.status_code == 201 and r.data["messages"][0]["client_id"] == "c-1"
+    conv = admin_api.get("/api/admin/conversations/").data[0]
+    assert conv["display_name"].startswith("Visitor ") and conv["visitor_contact"] == ""
+    cid = r.data["id"]
+    from chat.models import Conversation as C
+    from chat.services import add_message
+    add_message(C.objects.get(pk=cid), "visitor", "You can call me on +36 30 123 4567")
+    assert C.objects.get(pk=cid).visitor_contact == "+36 30 123 4567"
+    r = admin_api.patch(f"/api/admin/conversations/{cid}/info/", {"visitor_name": "Laci"}, format="json")
+    assert r.status_code == 200 and r.data["display_name"] == "Laci"
+
+
+def test_photos_in_chat(api, admin_api):
+    r = api.post("/api/chat/start/", {"message": "Look at this"}, format="json")
+    cid, tok = r.data["id"], r.data["token"]
+    photo = SimpleUploadedFile("leak.png", png_bytes(), content_type="image/png")
+    assert api.post(f"/api/chat/{cid}/photo/?token=bad", {"photo": photo}, format="multipart").status_code == 404
+    photo = SimpleUploadedFile("leak.png", png_bytes(), content_type="image/png")
+    r = api.post(f"/api/chat/{cid}/photo/?token={tok}", {"photo": photo}, format="multipart")
+    assert r.status_code == 201 and r.data["image"].startswith("http") and r.data["sender"] == "visitor"
+    bad = SimpleUploadedFile("x.pdf", b"%PDF", content_type="application/pdf")
+    assert api.post(f"/api/chat/{cid}/photo/?token={tok}", {"photo": bad}, format="multipart").status_code == 400
+    photo = SimpleUploadedFile("fixed.png", png_bytes(), content_type="image/png")
+    r = admin_api.post(f"/api/admin/conversations/{cid}/photo/", {"photo": photo}, format="multipart")
+    assert r.status_code == 201 and r.data["sender"] == "admin"
+    assert admin_api.get("/api/admin/conversations/").data[0]["last_message"]["image"]
+
+
 def test_admin_reply_and_convert_to_lead(api, admin_api):
-    r = api.post("/api/chat/start/", {"name": "Eve", "contact": "07700 900555", "message": "Boiler pressure dropping"}, format="json")
+    r = api.post("/api/chat/start/", {"name": "Eve", "message": "Boiler pressure dropping, call me on 07700 900555"}, format="json")
     cid = r.data["id"]
     assert admin_api.post(f"/api/admin/conversations/{cid}/reply/", {"body": "On it"}, format="json").status_code == 201
     conv = Conversation.objects.get(pk=cid)

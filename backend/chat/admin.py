@@ -6,7 +6,7 @@ from .models import Conversation, Message, QuickReply
 class MessageInline(admin.TabularInline):
     model = Message
     extra = 0
-    readonly_fields = ["sender", "body", "created_at"]
+    readonly_fields = ["sender", "body", "attachment", "delivered_at", "read_at", "created_at"]
 
 
 @admin.register(Conversation)
