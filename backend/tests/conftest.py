@@ -5,6 +5,14 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 
+@pytest.fixture(scope="session")
+def django_db_modify_db_settings(tmp_path_factory):
+    # Migrations copy our job photos into MEDIA_ROOT when the test database is built: keep them out of backend/media.
+    from django.conf import settings
+
+    settings.MEDIA_ROOT = tmp_path_factory.mktemp("media")
+
+
 @pytest.fixture(autouse=True)
 def _clean(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path

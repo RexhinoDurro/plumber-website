@@ -29,17 +29,21 @@ const toPhoto = (m: ApiMedia): Photo => ({
   focus: focusFor(m.src),
 });
 
+// Old databases may still hold the stock (Pexels) placeholders that used to seed the gallery. The gallery is
+// for our own jobs only, so those never show, even before `migrate` has removed them.
+const isStock = (m: ApiMedia) => /pexels\.com/.test(`${m.src} ${m.video ?? ""} ${m.creditUrl ?? ""}`);
+
 /** Gallery page: always fresh, so a new upload shows up straight away. */
 export async function getGallery(): Promise<{ photos: Photo[]; live: boolean }> {
-  const data = await get<ApiMedia[]>("/api/gallery/");
-  return data ? { photos: data.map(toPhoto), live: true } : { photos: fallbackPhotos, live: false };
+  const data = (await get<ApiMedia[]>("/api/gallery/"))?.filter((m) => !isStock(m));
+  return data?.length ? { photos: data.map(toPhoto), live: true } : { photos: fallbackPhotos, live: false };
 }
 
 /** Home page "Recent work": cached for a minute. */
 export async function getFeatured(): Promise<Photo[] | null> {
   "use cache";
   cacheLife({ stale: 30, revalidate: 60, expire: 3600 });
-  const data = await get<ApiMedia[]>("/api/gallery/?featured=1");
+  const data = (await get<ApiMedia[]>("/api/gallery/?featured=1"))?.filter((m) => !isStock(m));
   return data && data.length ? data.map(toPhoto) : null;
 }
 

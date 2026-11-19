@@ -86,6 +86,7 @@ def test_upload_rejects_other_files(admin_api):
 
 
 def test_unpublished_hidden_and_reorder(api, admin_api):
+    MediaItem.objects.all().delete()  # start from an empty gallery (migrations add our job photos)
     a = MediaItem.objects.create(title="A", alt="a", external_url="https://e.x/a.jpg")
     b = MediaItem.objects.create(title="B", alt="b", external_url="https://e.x/b.jpg", published=False)
     assert [x["title"] for x in api.get("/api/gallery/").data] == ["A"]
