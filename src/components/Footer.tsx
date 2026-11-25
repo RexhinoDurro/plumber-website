@@ -9,7 +9,7 @@ export function Footer() {
       <div className="wrap grid grid-cols-2 gap-8 pb-12 pt-24 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="col-span-2 md:col-span-1 grid gap-4 content-start">
           <Link href="/" aria-label={`${site.name}, home`} className="-ml-1 justify-self-start">
-            <Logo full className="h-auto w-[min(300px,80vw)]" />
+            <Logo className="h-auto w-[180px]" />
           </Link>
           <p className="max-w-[34ch]">{site.promise}</p>
           <a href={site.phoneHref} className="tap justify-self-start font-display text-2xl font-extrabold text-sky no-underline hover:underline [font-stretch:125%]">

@@ -47,9 +47,9 @@ export function Header() {
           scrolled ? "md:min-h-[72px]" : "md:min-h-[92px]"
         }`}
       >
-        {/* The logo is made for a dark background: it sits on a small dark tile so the silver lettering stays crisp. */}
-        <Link href="/" aria-label={`${site.name}, home`} className="flex shrink-0 items-center rounded-md bg-ink px-2 py-1 no-underline shadow-hair">
-          <Logo priority className={`h-14 transition-[height] duration-300 ease-out-soft ${scrolled ? "md:h-14" : "md:h-[72px]"}`} />
+        {/* The round badge carries its own background, so it sits straight on the header. */}
+        <Link href="/" aria-label={`${site.name}, home`} className="flex shrink-0 items-center rounded-full no-underline">
+          <Logo priority className={`h-16 transition-[height] duration-300 ease-out-soft ${scrolled ? "md:h-16" : "md:h-20"}`} />
         </Link>
 
         <nav

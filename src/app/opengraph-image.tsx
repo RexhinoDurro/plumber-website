@@ -9,7 +9,7 @@ export const contentType = "image/png";
 
 /** The picture shown when someone shares a link to the site (WhatsApp, iMessage, Facebook…). */
 export default async function OgImage() {
-  const logo = `data:image/png;base64,${(await readFile(join(process.cwd(), "public/brand/logo-full.png"))).toString("base64")}`;
+  const logo = `data:image/png;base64,${(await readFile(join(process.cwd(), "public/brand/logo.png"))).toString("base64")}`;
   return new ImageResponse(
     (
       <div
@@ -19,7 +19,7 @@ export default async function OgImage() {
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logo} width={520} height={336} alt="" style={{ objectFit: "contain" }} />
+        <img src={logo} width={420} height={420} alt="" style={{ objectFit: "contain" }} />
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ display: "flex", flexDirection: "column", fontSize: 60, fontWeight: 800, lineHeight: 1.05, letterSpacing: -1.5 }}>
             <span>Licensed plumbers.</span>
